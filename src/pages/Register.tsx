@@ -18,10 +18,10 @@ export default function Register() {
             alert("Registered Successfully");
             navigate('/')
         } catch (err: any) {
-            console.error("Register error:", err);
-            console.error("Response:", err.response);
-            console.log('fffffffffffffff')
-            alert(err.response?.data?.message || err.message || "Error");
+            console.log('fffffffffffffdd')
+            console.error(err);
+            console.error(err.response);
+            alert(err.response.data.message);
         }
 
     };
