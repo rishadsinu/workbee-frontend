@@ -14,6 +14,7 @@ export default function Register() {
         e.preventDefault();
         try {
             const res = await axios.post("http://localhost:4000/auth/register", form);
+            
             console.log(res)
             alert("Registered Successfully");
             navigate('/')
