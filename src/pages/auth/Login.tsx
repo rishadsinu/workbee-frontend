@@ -1,6 +1,8 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+
 
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" })
@@ -27,6 +29,7 @@ export default function Login() {
       <input name="email" placeholder="Email" onChange={handleChange} />
       <input type="password" name="password" placeholder="Password" onChange={handleChange} />
       <button type="submit">Login</button>
+      <Button onClick={() => navigate("/register")}>Register</Button>
     </form>
   );
 }
