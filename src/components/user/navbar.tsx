@@ -20,7 +20,7 @@ export default function Navbar() {
                     headers: { Authorization: `Bearer ${token}` },
 
                 })
-                setUser(res.data.payload)
+                setUser(res.data.user)
             } catch (err) {
                 localStorage.removeItem('token')
                 setUser(null)
@@ -88,7 +88,9 @@ export default function Navbar() {
                             <span className="sr-only">User profile</span>
                         </Button>
                     ) : (
-                        <Button onClick={() => navigate("/login")}>Login</Button>
+                        <Button onClick={() => navigate("/login")}
+                        className="h-7 px-4 text-xs rounded-full bg-primary text-white hover:bg-primary/90"
+                        >Login</Button>
                     )}
                 </div>
             </div>
