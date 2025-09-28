@@ -8,6 +8,8 @@ import axios from "axios"
 export default function Navbar() {
     const [isDarkMode, setIsDarkMode] = useState(false)
     const [user, setUser] = useState<any>(null)
+    const [dropdownOpen, setDropdownOpen] = useState(false)
+    
     const navigate = useNavigate()
 
     // check user is logined
@@ -56,6 +58,13 @@ export default function Navbar() {
         }
     }
 
+    // logout
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        setUser(null)
+        navigate('/')
+    }
+
     return (
         <nav className="w-full bg-background border-b border-border px-6 py-3">
             <div className="flex items-center justify-between w-full px-4">
@@ -83,14 +92,35 @@ export default function Navbar() {
                     </Button>
 
                     {user ? (
-                        <Button variant="ghost" size="icon" className="h-9 w-9">
-                            <User className="h-4 w-4" />
-                            <span className="sr-only">User profile</span>
-                        </Button>
+                        <div className="relative">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="cursor-pointer h-9 w-9"
+                                onClick={() => setDropdownOpen(prev => !prev)}
+                            >
+                                <User className="h-4 w-4" />
+                            </Button>
+
+                            {dropdownOpen && (
+                                <div className="absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10">
+                                    <button
+                                        onClick={handleLogout}
+                                        className="block cursor-pointer w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                    >
+                                        Logout
+                                    </button>
+                                </div>
+                            )}
+
+                        </div>
                     ) : (
-                        <Button onClick={() => navigate("/login")}
-                        className="h-7 px-4 text-xs rounded-full bg-primary text-white hover:bg-primary/90"
-                        >Login</Button>
+                        <Button
+                            onClick={() => navigate("/login")}
+                            className="h-7 px-4 text-xs cursor-pointer rounded-full bg-primary text-white hover:bg-primary/90"
+                        >
+                            Login
+                        </Button>
                     )}
                 </div>
             </div>

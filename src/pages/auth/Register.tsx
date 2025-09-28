@@ -31,9 +31,9 @@ export default function Register() {
     try {
       const { confirmPassword, ...registrationData } = form; 
       const res = await axios.post("http://localhost:4000/auth/register", registrationData);
-      localStorage.setItem("token", res.data.token);
-      alert("Registered Successfully");
-      navigate("/");
+      // localStorage.setItem("token", res.data.token);
+      // alert("Registered Successfully");
+      navigate("/otp");
     } catch (err: any) {
       console.error(err);
       alert(err.response?.data?.message || "Registration failed");
@@ -71,7 +71,6 @@ export default function Register() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-1.5">
-              {/* Name Input */}
               <div className="space-y-1">
                 <Label htmlFor="name" className="text-xs font-medium text-gray-700">
                   Enter your full name
@@ -88,7 +87,6 @@ export default function Register() {
                 />
               </div>
 
-              {/* Email Input */}
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-xs font-medium text-gray-700">
                   Enter your email address
@@ -105,7 +103,6 @@ export default function Register() {
                 />
               </div>
 
-              {/* Password Input */}
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-xs font-medium text-gray-700">
                   Create a password
@@ -132,7 +129,6 @@ export default function Register() {
                 </div>
               </div>
 
-              {/* Confirm Password Input */}
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword" className="text-xs font-medium text-gray-700">
                   Confirm your password
@@ -162,7 +158,6 @@ export default function Register() {
                 )}
               </div>
 
-              {/* Action Buttons */}
               <div className="flex space-x-4">
                 <Button
                   type="submit"
@@ -219,17 +214,6 @@ export default function Register() {
                 <span className="text-gray-700 font-medium">Sign up with Google</span>
               </Button>
 
-              {/* Terms and Conditions */}
-              <p className="text-xs text-gray-500 text-center">
-                By signing up, you agree to our{" "}
-                <button type="button" className="text-blue-600 hover:text-blue-800 underline">
-                  Terms of Service
-                </button>{" "}
-                and{" "}
-                <button type="button" className="text-blue-600 hover:text-blue-800 underline">
-                  Privacy Policy
-                </button>
-              </p>
             </form>
           </div>
         </div>

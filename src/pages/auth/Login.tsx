@@ -50,7 +50,7 @@ export default function Login() {
           <FloatingIcons />
         </div>
 
-        {/* Right Side - Login Form - MOVED LEFT */}
+        {/* Right Side - Login Form */}
         <div className="flex-1 max-w-md mx-auto mr-25">
           <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
             <div className="text-center mb-8">
@@ -107,7 +107,6 @@ export default function Login() {
                 </div>
               </div>
 
-              {/* Action Buttons */}
               <div className="flex space-x-4">
                 <Button
                   type="submit"
@@ -126,7 +125,6 @@ export default function Login() {
                 </Button>
               </div>
 
-              {/* Divider */}
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
                   <span className="w-full border-t border-gray-300" />
@@ -136,7 +134,6 @@ export default function Login() {
                 </div>
               </div>
 
-              {/* Google Sign In */}
               <Button
                 type="button"
                 variant="outline"
