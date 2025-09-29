@@ -31,14 +31,14 @@ export default function Register() {
     try {
       const { confirmPassword, ...registrationData } = form; 
       const res = await axios.post("http://localhost:4000/auth/register", registrationData);
-      // localStorage.setItem("token", res.data.token);
-      // alert("Registered Successfully");
+      localStorage.setItem("token", res.data.token);
+      alert("otp sent to your email address");
       navigate("/otp");
     } catch (err: any) {
       console.error(err);
       alert(err.response?.data?.message || "Registration failed");
     } finally {
-      setIsLoading(false);
+      setIsLoading(false);  
     }
   };
 

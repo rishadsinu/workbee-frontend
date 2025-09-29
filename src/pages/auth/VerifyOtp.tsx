@@ -11,7 +11,7 @@ const Otp = () => {
 
   const handleVerify = async () => {
       try {
-        const res = await axios.post('http://localhost:4000/verifyOtp',{userId, otp})
+        const res = await axios.post('http://localhost:4000/auth/verifyOtp',{userId, otp})
         localStorage.setItem('token',res.data.token)
         alert('Opt verified and registered successfully')
         navigate('/')
