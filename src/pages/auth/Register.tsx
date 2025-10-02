@@ -31,12 +31,12 @@ export default function Register() {
     try {
       const { confirmPassword, ...registrationData } = form; 
       const res = await axios.post("http://localhost:4000/auth/register", registrationData);
-      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("userId", res.data.userId);
       alert("otp sent to your email address");
       navigate("/otp");
     } catch (err: any) {
       console.error(err);
-      alert(err.response?.data?.message || "Registration failed");
+      alert(err.response?.data?.message || "Registration failed in register page");
     } finally {
       setIsLoading(false);  
     }
