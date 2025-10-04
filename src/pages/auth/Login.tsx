@@ -23,9 +23,13 @@ export default function Login() {
     setIsLoading(true);
     try {
       const res = await axios.post("http://localhost:4000/auth/login", form);
-      localStorage.setItem("token", res.data.token);
-      alert("Login Successful");
-      navigate("/");
+      if (res.data.success) {
+        localStorage.setItem("token", res.data.data.token);
+        alert(res.data.message || "Login Successful");
+        navigate("/");
+      } else {
+        alert(res.data.message || "Login failed");
+      }
     } catch (err: any) {
       alert(err.response.data.message);
     } finally {
@@ -42,7 +46,7 @@ export default function Login() {
         </div>
       </div>
 
-      
+
       <main className="relative flex items-center min-h-screen px-6 max-w-7xl mx-auto">
 
         {/* icons */}

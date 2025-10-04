@@ -21,7 +21,7 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (form.password !== form.confirmPassword) {
       alert("Passwords do not match!");
       return;
@@ -29,29 +29,36 @@ export default function Register() {
 
     setIsLoading(true);
     try {
-      const { confirmPassword, ...registrationData } = form; 
+      const { confirmPassword, ...registrationData } = form;
+
       const res = await axios.post("http://localhost:4000/auth/register", registrationData);
-      localStorage.setItem("userId", res.data.userId);
-      alert("otp sent to your email address");
-      navigate("/otp");
+      if (res.data.success) {
+        localStorage.setItem("userId", res.data.data.userId);
+        alert(res.data.message);
+        navigate("/otp");
+      } else {
+        alert(res.data.message || "Registration failed");
+      }
+
     } catch (err: any) {
       console.error(err);
-      alert(err.response?.data?.message || "Registration failed in register page");
+      alert(err.response?.data?.message || "Registration failed");
     } finally {
-      setIsLoading(false);  
+      setIsLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* TaskBee Logo */}
       <div className="absolute top-8 left-8 z-10">
         <div className="flex items-center gap-2 pl-2">
-          <img 
-            onClick={() => navigate('/')} 
-            src={Logo} 
-            alt="TaskBee Logo" 
-            className="h-9 w-35 cursor-pointer" 
+          <img
+            onClick={() => navigate('/')}
+            src={Logo}
+            alt="TaskBee Logo"
+            className="h-9 w-35 cursor-pointer"
           />
         </div>
       </div>
@@ -166,7 +173,7 @@ export default function Register() {
                 >
                   {isLoading ? "Creating Account..." : "Sign up"}
                 </Button>
-                
+
                 <Button
                   type="button"
                   variant="outline"

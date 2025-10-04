@@ -14,15 +14,22 @@ const VerifyOtp = () => {
 
   const handleVerify = async () => {
     try {
-      const res = await axios.post('http://localhost:4000/auth/verifyOtp', { userId, otp })
-      localStorage.setItem('token', res.data.token)
-      alert('Opt verified and registered successfully')
-      navigate('/')
+      const res = await axios.post('http://localhost:4000/auth/verifyOtp', { userId, otp });
+
+      if (res.data.success) {
+        localStorage.setItem('token', res.data.data.token);
+        alert(res.data.message);
+        navigate('/');
+      } else {
+        alert(res.data.message || 'OTP verification failed');
+      }
+
     } catch (error: any) {
-      console.log(error)
-      alert(error.response?.data?.message)
+      console.error(error);
+      alert(error.response?.data?.message || 'OTP verification failed');
     }
-  }
+  };
+
 
   return (
     <div>

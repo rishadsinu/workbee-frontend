@@ -5,7 +5,7 @@ import Login from "@/pages/auth/Login";
 import Register from "@/pages/auth/Register";
 import Otp from "@/pages/auth/VerifyOtp";
 
-const AppRoutes = () => {
+const UserRoute = () => {
   return (
     <Routes>
         <Route path="/" element={<Home/>} />
@@ -16,7 +16,7 @@ const AppRoutes = () => {
   )
 }
 
-export default AppRoutes
+export default UserRoute
 
 
 

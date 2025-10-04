@@ -13,23 +13,48 @@ export default function Navbar() {
     const navigate = useNavigate()
 
     // check user is logined
-    useEffect(() => {
-        const verifyUser = async () => {
-            const token = localStorage.getItem('token')
-            if (!token) return;
-            try {
-                const res = await axios.get('http://localhost:4000/auth/verify', {
-                    headers: { Authorization: `Bearer ${token}` },
+    // useEffect(() => {
+    //     const verifyUser = async () => {
+    //         const token = localStorage.getItem('token')
+    //         if (!token) return;
+    //         try {
+    //             const res = await axios.get('http://localhost:4000/auth/verify', {
+    //                 headers: { Authorization: `Bearer ${token}` },
 
-                })
-                setUser(res.data.user)
-            } catch (err) {
-                localStorage.removeItem('token')
-                setUser(null)
-            }
-        }
-        verifyUser()
-    }, [])
+    //             })
+    //             setUser(res.data.user)
+    //         } catch (err) {
+    //             localStorage.removeItem('token')
+    //             setUser(null)
+    //         }
+    //     }
+    //     verifyUser()
+    // }, [])
+    useEffect(() => {
+  const verifyUser = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      const res = await axios.get("http://localhost:4000/auth/verify", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.data.success) {
+        setUser(res.data.data); // user is inside data
+      } else {
+        localStorage.removeItem("token");
+        setUser(null);
+      }
+    } catch (err) {
+      localStorage.removeItem("token");
+      setUser(null);
+    }
+  };
+
+  verifyUser();
+}, []);
+
 
     // dark mode
     useEffect(() => {
