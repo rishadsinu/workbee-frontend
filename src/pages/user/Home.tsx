@@ -4,7 +4,7 @@ import Navbar from "@/components/user/navbar";
 
 export default function Login() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 text-gray-900">
       <Navbar/>
       
       <main className="relative ml-50 flex items-center min-h-[calc(100vh-95px)] px-6 max-w-7xl mx-auto">

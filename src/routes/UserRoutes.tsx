@@ -1,9 +1,9 @@
 
 import { Route, Routes } from "react-router-dom";
 import Home from "@/pages/user/Home";
-import Login from "@/pages/auth/Login";
-import Register from "@/pages/auth/Register";
-import Otp from "@/pages/auth/VerifyOtp";
+import Login from "@/pages/user/Login";
+import Register from "@/pages/user/Register";
+import Otp from "@/pages/user/VerifyOtp";
 
 const UserRoute = () => {
   return (
