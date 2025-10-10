@@ -12,6 +12,13 @@ const Navbar = () => {
   useEffect(() => {
     const verifyUser = async () => {
       const token = localStorage.getItem("token");
+      const googleUser = localStorage.getItem("user")
+
+      if (googleUser) {
+        setUser(JSON.parse(googleUser))
+        return;
+      }
+
       if (!token) return;
 
       try {
@@ -34,9 +41,11 @@ const Navbar = () => {
     verifyUser();
   }, []);
 
+
   // logout
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user")
     setUser(null);
     navigate("/");
   };

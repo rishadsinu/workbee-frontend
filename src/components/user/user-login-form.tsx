@@ -18,7 +18,7 @@ import { useNavigate } from "react-router-dom"
 import axios from "axios"
 import { Eye, EyeOff } from "lucide-react"
 import BackButton from "../common/back-button"
-import { GoogleLogin } from '@react-oauth/google';
+import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 
 export function LoginForm({
     className,
@@ -50,6 +50,27 @@ export function LoginForm({
             alert(err.response?.data?.message || "Something went wrong");
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    //google auth
+    const handleGoogleAuthLogin = async (credentialResponse: any) => {
+        try {
+            const res = await axios.post("http://localhost:4000/auth/google-login", {
+                credential: credentialResponse.credential,
+            });
+
+            if (res.data.success) {
+                localStorage.setItem("token", res.data.token);
+                localStorage.setItem("user", JSON.stringify(res.data.data.user));
+
+                alert(res.data.message || "Google Auth Successful");
+                navigate("/");
+            } else {
+                alert(res.data.message || "Google Auth Failed");
+            }
+        } catch (err: any) {
+            alert(err.response?.data?.message || "Google Login Failed");
         }
     };
 
@@ -113,14 +134,23 @@ export function LoginForm({
                             </Field>
 
                             {/* google auth */}
-                            <GoogleLogin
+                            {/* <GoogleLogin
                                 onSuccess={credentialResponse => {
                                     console.log(credentialResponse);
                                 }}
                                 onError={() => {
                                     console.log('Login Failed');
                                 }}
-                            />
+                            /> */}
+
+                            <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+                                <GoogleLogin
+
+                                    onSuccess={handleGoogleAuthLogin}
+                                    onError={() => alert('Google login failed')}
+                                />
+                            </GoogleOAuthProvider>
+
 
                             <div className="mt-4 text-center text-sm">
                                 Don&apos;t have an account?{' '}
