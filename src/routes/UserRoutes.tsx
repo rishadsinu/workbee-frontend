@@ -4,6 +4,8 @@ import Home from "@/pages/user/Home";
 import Login from "@/pages/user/Login";
 import Register from "@/pages/user/Register";
 import Otp from "@/pages/user/VerifyOtp";
+import ForgotPassword from "@/pages/user/ForgotPassword";
+import ResetPassword from "@/pages/user/ResetPassword"
 
 const UserRoute = () => {
   return (
@@ -12,6 +14,8 @@ const UserRoute = () => {
         <Route path="login" element={<Login/>} />
         <Route path="register" element={<Register/>}/>
         <Route path="otp" element={<Otp/>}/>
+        <Route path="forgot-password" element={<ForgotPassword/>}/>
+        <Route path="reset-password/:token" element={<ResetPassword/>} />
     </Routes>
   )
 }

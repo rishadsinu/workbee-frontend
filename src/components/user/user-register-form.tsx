@@ -18,7 +18,8 @@ import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import axios from "axios"
 import BackButton from "../common/back-button"
-import GoogleAuthButton from "../ui/google-auth-button"
+// import GoogleAuthButton from "../ui/google-auth-button"
+import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google"
 
 export function RegisterForm({
     className,
@@ -67,11 +68,32 @@ export function RegisterForm({
         }
     }
 
+    //google auth
+    const handleGoogleAuthLogin = async (credentialResponse: any) => {
+        try {
+            const res = await axios.post("http://localhost:4000/auth/google-login", {
+                credential: credentialResponse.credential,
+            });
+
+            if (res.data.success) {
+                localStorage.setItem("token", res.data.token);
+                localStorage.setItem("user", JSON.stringify(res.data.data.user));
+
+                alert(res.data.message || "Google Auth Successful");
+                navigate("/");
+            } else {
+                alert(res.data.message || "Google Auth Failed");
+            }
+        } catch (err: any) {
+            alert(err.response?.data?.message || "Google Login Failed");
+        }
+    };
+
     return (
         <div className={cn("flex flex-col gap-6", className)} {...props}>
             <Card>
                 <CardHeader>
-                    <BackButton/>
+                    <BackButton />
                     <CardTitle>Register</CardTitle>
                     <CardDescription>
                         Create your account to get started
@@ -171,7 +193,16 @@ export function RegisterForm({
                                     {isLoading ? "Creating Account..." : "Sign up"}
                                 </Button>
                             </Field>
-                            <GoogleAuthButton/>
+
+                            {/* google auth */}
+                            <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+                                <GoogleLogin
+
+                                    onSuccess={handleGoogleAuthLogin}
+                                    onError={() => alert('Google login failed')}
+                                />
+                            </GoogleOAuthProvider>
+
                             <div className="mt-4 text-center text-sm">
                                 Already have any account?{' '}
                                 <a
@@ -180,7 +211,17 @@ export function RegisterForm({
                                 >
                                     Login
                                 </a>
+                                <div className="mt-4 text-center text-sm">
+                                    Apply to become a worker?{" "}
+                                    <a
+                                        className="underline underline-offset-4 cursor-pointer"
+                                        onClick={() => navigate("/apply-worker")}
+                                    >
+                                        Click Here
+                                    </a>
+                                </div>
                             </div>
+
                         </FieldGroup>
                     </form>
                 </CardContent>

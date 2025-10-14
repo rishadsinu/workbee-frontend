@@ -103,8 +103,8 @@ export function LoginForm({
                                 <div className="flex items-center">
                                     <FieldLabel htmlFor="password">Password</FieldLabel>
                                     <a
-                                        href="#"
-                                        className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
+                                        onClick={() => navigate("/forgot-password")}
+                                        className="ml-auto inline-block text-sm underline-offset-4 hover:underline cursor-pointer"
                                     >
                                         Forgot your password?
                                     </a>
@@ -134,15 +134,6 @@ export function LoginForm({
                             </Field>
 
                             {/* google auth */}
-                            {/* <GoogleLogin
-                                onSuccess={credentialResponse => {
-                                    console.log(credentialResponse);
-                                }}
-                                onError={() => {
-                                    console.log('Login Failed');
-                                }}
-                            /> */}
-
                             <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
                                 <GoogleLogin
 
@@ -160,16 +151,17 @@ export function LoginForm({
                                 >
                                     Sign up
                                 </a>
-                            </div>
-                            <div className="mt-4 text-center text-sm">
-                                Are You A Worker?{" "}
+                                 <div className="mt-4 text-center text-sm">
+                                Apply to become a worker?{" "}
                                 <a
                                     className="underline underline-offset-4 cursor-pointer"
-                                // onClick={() => handleNav("/inspector/login")}
+                                    onClick={() => navigate("/apply-worker")}
                                 >
                                     Click Here
                                 </a>
                             </div>
+                            </div>
+                           
                         </FieldGroup>
                     </form>
                 </CardContent>

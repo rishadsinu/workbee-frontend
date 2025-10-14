@@ -5,6 +5,7 @@ import { BrowserRouter as Router } from "react-router-dom";
 
 import UserRoute from "./routes/UserRoutes";
 import AdminRoute from "./routes/AdminRoutes";
+import WorkerRoutes from "./routes/WorkerRoutes";
 
 const App = () => {
   return (
@@ -12,6 +13,7 @@ const App = () => {
     <Router>
       <UserRoute />
       <AdminRoute />
+      <WorkerRoutes />
 
       {/* dark and light mode setep */}
       {/* <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
