@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Sun, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { AuthService } from "@/services/auth-service";
 
 const Navbar = () => {
   const [user, setUser] = useState<any>(null);
@@ -22,9 +23,11 @@ const Navbar = () => {
       if (!token) return;
 
       try {
-        const res = await axios.get("http://localhost:4000/auth/verify", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        // const res = await axios.get("http://localhost:4000/auth/verify", {
+        //   headers: { Authorization: `Bearer ${token}` },
+        // });
+
+        const res = await AuthService.verifyUser(token)
 
         if (res.data.success) {
           setUser(res.data.data);

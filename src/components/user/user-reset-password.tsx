@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import BackButton from "../common/back-button";
+import { AuthService } from "@/services/auth-service";
 
 export function UserResetPassword() {
   const { token } = useParams();
@@ -32,7 +32,9 @@ export function UserResetPassword() {
 
     try {
       setLoading(true);
-      const res = await axios.post(`http://localhost:4000/auth/reset-password/${token}`, { password });
+
+      const res = await AuthService.resetPassword(token!, { password });
+
       if (res.data.success) {
         alert("Password reset successfully!");
         navigate("/login");

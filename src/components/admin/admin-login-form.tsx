@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import axios from "axios"
+import { AuthService } from "@/services/auth-service"
 
 export function LoginForm({
   className,
@@ -29,10 +29,9 @@ export function LoginForm({
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      const res = await axios.post('http://localhost:4000/auth/admin/login', {
-        email,
-        password
-      })
+
+      const res = await AuthService.adminLogin({email, password})
+
       console.log('fontenddddd', res.data)
       const token = res.data.data?.token || res.data.token
       if (token) {

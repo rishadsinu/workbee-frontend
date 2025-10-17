@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import BackButton from "../common/back-button"
-import axios from "axios"
+import { AuthService } from "@/services/auth-service"
 
 export function UserForgotPassword({
     className,
@@ -35,9 +35,8 @@ export function UserForgotPassword({
         setIsLoading(true);
 
         try {
-            const res = await axios.post("http://localhost:4000/auth/forgot-password",{
-                email: form.email,
-            })
+
+            const res = await AuthService.forgotPassword({email:form.email})
             if (res.data.success) {
                 alert('we sent a reset link into your email')
                 navigate('/login')

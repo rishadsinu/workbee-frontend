@@ -16,10 +16,10 @@ import { Input } from "@/components/ui/input"
 import { Eye, EyeOff } from "lucide-react"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import axios from "axios"
 import BackButton from "../common/back-button"
 // import GoogleAuthButton from "../ui/google-auth-button"
 import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google"
+import { AuthService } from "@/services/auth-service"
 
 export function RegisterForm({
     className,
@@ -51,8 +51,7 @@ export function RegisterForm({
         setIsLoading(true)
         try {
             const { confirmPassword, ...registrationData } = form
-            const res = await axios.post("http://localhost:4000/auth/register", registrationData)
-
+            const res =  await AuthService.register(registrationData)
             if (res.data.success) {
                 localStorage.setItem("userId", res.data.data.userId)
                 alert(res.data.message)
@@ -71,9 +70,7 @@ export function RegisterForm({
     //google auth
     const handleGoogleAuthLogin = async (credentialResponse: any) => {
         try {
-            const res = await axios.post("http://localhost:4000/auth/google-login", {
-                credential: credentialResponse.credential,
-            });
+            const res = await AuthService.googleAuthLogin({credential: credentialResponse.credential})
 
             if (res.data.success) {
                 localStorage.setItem("token", res.data.token);

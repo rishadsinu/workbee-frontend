@@ -15,10 +15,10 @@ import {
 import { Input } from "@/components/ui/input"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import axios from "axios"
 import { Eye, EyeOff } from "lucide-react"
 import BackButton from "../common/back-button"
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
+import { AuthService } from "@/services/auth-service"
 
 export function LoginForm({
     className,
@@ -38,7 +38,7 @@ export function LoginForm({
         e.preventDefault();
         setIsLoading(true);
         try {
-            const res = await axios.post("http://localhost:4000/auth/login", form);
+            const res = await AuthService.login(form)
             if (res.data.success) {
                 localStorage.setItem("token", res.data.data.token);
                 alert(res.data.message || "Login Successful");
@@ -56,9 +56,8 @@ export function LoginForm({
     //google auth
     const handleGoogleAuthLogin = async (credentialResponse: any) => {
         try {
-            const res = await axios.post("http://localhost:4000/auth/google-login", {
-                credential: credentialResponse.credential,
-            });
+
+            const res = await AuthService.googleAuthLogin({credential: credentialResponse.credential})
 
             if (res.data.success) {
                 localStorage.setItem("token", res.data.token);
@@ -136,7 +135,6 @@ export function LoginForm({
                             {/* google auth */}
                             <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
                                 <GoogleLogin
-
                                     onSuccess={handleGoogleAuthLogin}
                                     onError={() => alert('Google login failed')}
                                 />
