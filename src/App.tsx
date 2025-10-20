@@ -1,27 +1,23 @@
-import { BrowserRouter as Router } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-// import { ThemeProvider } from "@/components/theme-provider"
-// import { ModeToggle } from "./components/mode-toggle";
-
-import UserRoute from "./routes/UserRoutes";
-import AdminRoute from "./routes/AdminRoutes";
+import UserRoutes from "./routes/UserRoutes";
+import AdminRoutes from "./routes/AdminRoutes";
 import WorkerRoutes from "./routes/WorkerRoutes";
 
 const App = () => {
   return (
-
     <Router>
-      <UserRoute />
-      <AdminRoute />
-      <WorkerRoutes />
+      <Routes>
+        {/* User side */}
+        <Route path="/*" element={<UserRoutes />} />
 
-      {/* dark and light mode setep */}
-      {/* <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-        <ModeToggle />
-      </ThemeProvider> */}
-      
+        {/* Admin side */}
+        <Route path="/admin/*" element={<AdminRoutes />} />
+
+        {/* Worker side */}
+        <Route path="/worker/*" element={<WorkerRoutes />} />
+      </Routes>
     </Router>
-
   );
 };
 

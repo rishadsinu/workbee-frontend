@@ -153,7 +153,7 @@ export function LoginForm({
                                 Apply to become a worker?{" "}
                                 <a
                                     className="underline underline-offset-4 cursor-pointer"
-                                    onClick={() => navigate("/apply-worker")}
+                                    onClick={() => navigate("/worker/apply-worker")}
                                 >
                                     Click Here
                                 </a>
