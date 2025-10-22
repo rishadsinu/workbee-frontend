@@ -57,7 +57,7 @@ export function LoginForm({
     const handleGoogleAuthLogin = async (credentialResponse: any) => {
         try {
 
-            const res = await AuthService.googleAuthLogin({credential: credentialResponse.credential})
+            const res = await AuthService.googleAuthLogin({ credential: credentialResponse.credential })
 
             if (res.data.success) {
                 localStorage.setItem("token", res.data.token);
@@ -149,17 +149,26 @@ export function LoginForm({
                                 >
                                     Sign up
                                 </a>
-                                 <div className="mt-4 text-center text-sm">
-                                Apply to become a worker?{" "}
-                                <a
-                                    className="underline underline-offset-4 cursor-pointer"
-                                    onClick={() => navigate("/worker/apply-worker")}
-                                >
-                                    Click Here
-                                </a>
+                                <div className="mt-4 text-center text-sm">
+                                    Are you a worker?{" "}
+                                    <a
+                                        className="underline underline-offset-4 cursor-pointer"
+                                        onClick={() => navigate("/worker/worker-login")}
+                                    >
+                                        Click Here
+                                    </a>
+                                </div>
+                                <div className="mt-4 text-center text-sm">
+                                    Apply to become a worker?{" "}
+                                    <a
+                                        className="underline underline-offset-4 cursor-pointer"
+                                        onClick={() => navigate("/worker/apply-worker")}
+                                    >
+                                        Click Here
+                                    </a>
+                                </div>
                             </div>
-                            </div>
-                           
+
                         </FieldGroup>
                     </form>
                 </CardContent>

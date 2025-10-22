@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import type { Variants } from 'motion/react';
 import BackButton from '../common/back-button';
 import { CardDescription, CardHeader, CardTitle } from './card';
+import { useNavigate } from 'react-router-dom';
 
 
 interface StepperProps extends HTMLAttributes<HTMLDivElement> {
@@ -11,6 +12,8 @@ interface StepperProps extends HTMLAttributes<HTMLDivElement> {
   initialStep?: number;
   onStepChange?: (step: number) => void;
   onFinalStepCompleted?: () => void;
+  onSubmit?: () => void | Promise<void>;
+  isSubmitting?: boolean;
   stepCircleContainerClassName?: string;
   stepContainerClassName?: string;
   contentClassName?: string;
@@ -32,6 +35,8 @@ export default function Stepper({
   initialStep = 1,
   onStepChange = () => { },
   onFinalStepCompleted = () => { },
+  onSubmit, // NEW: Destructure onSubmit
+  isSubmitting = false, // NEW: Destructure isSubmitting
   stepCircleContainerClassName = '',
   stepContainerClassName = '',
   contentClassName = '',
@@ -67,6 +72,8 @@ export default function Stepper({
     }
   };
 
+  const navigate = useNavigate()
+
   const handleNext = () => {
     if (!isLastStep) {
       setDirection(1);
@@ -74,22 +81,24 @@ export default function Stepper({
     }
   };
 
-  const handleComplete = () => {
-    setDirection(1);
-    updateStep(totalSteps + 1);
+  // NEW: Modified handleComplete to call onSubmit
+  const handleComplete = async () => {
+    if (onSubmit) {
+      await onSubmit();
+    } else {
+      setDirection(1);
+      updateStep(totalSteps + 1);
+    }
   };
 
   return (
     <div
-
       className="flex min-h-full flex-1 flex-col items-center justify-center p-4 sm:aspect-[4/3] md:aspect-[2/1]"
       {...rest}
     >
-
       <div
         className={`relative left-1/2 -translate-x-1/2 w-[130%] items-center rounded-3xl shadow-xl border border-gray-110 ${stepCircleContainerClassName}`}
       >
-
         <div className='ml-5 mt-5'>
           <BackButton />
         </div>
@@ -101,7 +110,6 @@ export default function Stepper({
         </CardHeader>
 
         <div className={`${stepContainerClassName} flex w-full items-center p-8`}>
-
           {stepsArray.map((_, index) => {
             const stepNumber = index + 1;
             const isNotLastStep = index < totalSteps - 1;
@@ -148,38 +156,37 @@ export default function Stepper({
               {currentStep !== 1 && (
                 <button
                   onClick={handleBack}
-                  className={`duration-350 rounded px-2 py-1 transition ${currentStep === 1
-                    ? 'pointer-events-none opacity-50 text-neutral-400'
-                    : 'text-neutral-400 hover:text-neutral-800'
+                  disabled={isSubmitting} // NEW: Disable during submission
+                  className={`duration-350 rounded px-2 py-1 transition ${currentStep === 1 || isSubmitting
+                      ? 'pointer-events-none opacity-50 text-neutral-400'
+                      : 'text-neutral-400 hover:text-neutral-800'
                     }`}
                   {...backButtonProps}
                 >
                   {backButtonText}
                 </button>
-
-                //gray previus button
-                //             <button
-                //               onClick={handleBack}
-                //               className={`w-23 duration-350 rounded-full px-2 py-1 transition 
-                // bg-gray-100
-                // ${currentStep === 1
-                //                   ? 'pointer-events-none opacity-50 text-neutral-400'
-                //                   : 'text-neutral-800 hover:bg-gray-200'
-                //                 }`}
-                //               {...backButtonProps}
-                //             >
-                //               {backButtonText}
-                //             </button>
-
               )}
               <button
                 onClick={isLastStep ? handleComplete : handleNext}
-                className="duration-350 flex items-center justify-center rounded-full bg-neutral-900 py-1.5 px-3.5 font-medium tracking-tight text-white transition hover:bg-neutral-800 active:bg-neutral-700"
+                disabled={isSubmitting} // NEW: Disable during submission
+                className="duration-350 flex items-center justify-center rounded-full bg-neutral-900 py-1.5 px-3.5 font-medium tracking-tight text-white transition hover:bg-neutral-800 active:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 {...nextButtonProps}
               >
-                {isLastStep ? 'Apply' : nextButtonText}
+                {/* NEW: Show loading state */}
+                {isSubmitting ? 'Submitting...' : isLastStep ? 'Apply' : nextButtonText}
               </button>
+            </div>
+            <div>
+              <div className="mt-10 text-center text-sm">
+                Already have an worker account?{' '}
+                <span
+                  onClick={() => navigate("/worker/worker-login")}
+                  className="underline underline-offset-4 cursor-pointer text-gray-600 hover:text-gray-800"
 
+                >
+                  Sign in
+                </span>
+              </div>
             </div>
           </div>
         )}

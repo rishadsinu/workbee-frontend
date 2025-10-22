@@ -1,8 +1,6 @@
 import { cn } from "@/lib/utils"
 import Stepper, { Step } from "../ui/stepper"
-import {
-  CardContent,
-} from "@/components/ui/card"
+import { CardContent } from "@/components/ui/card"
 import {
   Field,
   FieldGroup,
@@ -19,6 +17,8 @@ export function ApplyWorkerForm({ className, ...props }: React.ComponentProps<"d
     name: "",
     email: "",
     phone: "",
+    password: "",
+    confirmPassword: "",
     location: "",
     workType: "",
     preferredWork: "",
@@ -29,6 +29,7 @@ export function ApplyWorkerForm({ className, ...props }: React.ComponentProps<"d
       termsAccepted: false,
     },
   })
+  const [currentStep, setCurrentStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
 
@@ -46,159 +47,225 @@ export function ApplyWorkerForm({ className, ...props }: React.ComponentProps<"d
     }))
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+
+  const handleSubmit = async () => {
+    try {
+      setIsLoading(true)
+
+      if (!form.name || !form.email || !form.phone) {
+        alert("Please fill all required details.");
+        return;
+      }
+
+      if (form.password !== form.confirmPassword) {
+        alert("Passwords do not match!");
+        return;
+      }
+
+      if (form.password.length < 6) {
+        alert("Password must be at least 6 characters long.");
+        return;
+      }
+
+
+      const workerData = {
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        password: form.password,
+        location: form.location,
+        workType: form.workType,
+        preferredWorks: [form.preferredWork],
+        confirmations: {
+          reliable: form.confirmations.reliable,
+          honest: form.confirmations.honest,
+          termsAccepted: form.confirmations.termsAccepted,
+        }
+      }
+
+      const result = await axios.post("http://localhost:4000/work/apply-worker", workerData)
+
+      if (result.data.success) {
+        alert("Successfully applied.check your email, We'll update in 1 hour.")
+        navigate('/')
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      alert("Error while applying to become a worker")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
-    
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-        
-        <CardContent>
-           
-          <Stepper
-            initialStep={1}
-            onStepChange={(step) => console.log("Current Step:", step)}
-            onFinalStepCompleted={() => console.log("All steps completed")}
-            backButtonText="Previous"
-            nextButtonText="Next"
-          >
-            {/* ---------- STEP 1: PERSONAL INFO ---------- */}
-            
-            <Step>
-              <form className="flex flex-col gap-4">
-                <FieldGroup>
-                  <Field>
-                    <FieldLabel htmlFor="name">Full Name</FieldLabel>
-                    <Input
-                      id="name"
-                      name="name"
-                      value={form.name}
-                      onChange={handleChange}
-                      placeholder="Enter your full name"
-                      required
-                    />
-                  </Field>
+      <CardContent>
+        <Stepper
+          initialStep={1}
+          onStepChange={(step) => setCurrentStep(step)}
+          onSubmit={handleSubmit}
+          isSubmitting={isLoading}
+          backButtonText="Previous"
+          nextButtonText="Next"
+        >
+          {/* ---------- STEP 1 ---------- */}
+          <Step>
+            <form className="flex flex-col gap-4">
+              <FieldGroup>
+                <Field>
+                  <FieldLabel htmlFor="name">Full Name</FieldLabel>
+                  <Input
+                    id="name"
+                    name="name"
+                    value={form.name}
+                    onChange={handleChange}
+                    placeholder="Enter your full name"
+                    required
+                  />
+                </Field>
 
-                  <Field>
-                    <FieldLabel htmlFor="email">Email</FieldLabel>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={form.email}
-                      onChange={handleChange}
-                      placeholder="Enter your email"
-                      required
-                    />
-                  </Field>
+                <Field>
+                  <FieldLabel htmlFor="email">Email</FieldLabel>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    placeholder="Enter your email"
+                    required
+                  />
+                </Field>
 
-                  <Field>
-                    <FieldLabel htmlFor="phone">Phone Number</FieldLabel>
-                    <Input
-                      id="phone"
-                      name="phone"
-                      type="tel"
-                      value={form.phone}
-                      onChange={handleChange}
-                      placeholder="Enter phone number"
-                      required
-                    />
-                  </Field>
-                </FieldGroup>
-              </form>
-            </Step>
+                <Field>
+                  <FieldLabel htmlFor="phone">Phone Number</FieldLabel>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    value={form.phone}
+                    onChange={handleChange}
+                    placeholder="Enter phone number"
+                    required
+                  />
+                </Field>
+              </FieldGroup>
+            </form>
+          </Step>
 
-            {/* ---------- STEP 2: LOCATION ---------- */}
-            <Step>
-              <form className="flex flex-col gap-4">
-                <FieldGroup>
-                  <Field>
-                    <FieldLabel htmlFor="location">Location</FieldLabel>
-                    <Input
-                      id="location"
-                      name="location"
-                      value={form.location}
-                      onChange={handleChange}
-                      placeholder="City / State / Country"
-                      required
-                    />
-                  </Field>
-                </FieldGroup>
-              </form>
-            </Step>
+          {/* ---------- STEP 2 ---------- */}
+          <Step>
+            <form className="flex flex-col gap-4">
+              <FieldGroup>
+                <Field>
+                  <FieldLabel htmlFor="password">Password</FieldLabel>
+                  <Input
+                    id="password"
+                    type="password"
+                    name="password"
+                    value={form.password}
+                    onChange={handleChange}
+                    placeholder="************"
+                    required
+                  />
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="confirmPassword">Confirm Password</FieldLabel>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    name="confirmPassword"
+                    value={form.confirmPassword}
+                    onChange={handleChange}
+                    placeholder="************"
+                    required
+                  />
+                </Field>
+              </FieldGroup>
+            </form>
+          </Step>
 
-            {/* ---------- STEP 3: WORK DETAILS ---------- */}
-            <Step>
-              <form className="flex flex-col gap-4">
-                <FieldGroup>
-                  <Field>
-                    <FieldLabel htmlFor="workType">Work Type</FieldLabel>
-                    <Input
-                      id="workType"
-                      name="workType"
-                      value={form.workType}
-                      onChange={handleChange}
-                      placeholder="E.g., Electrician, Plumber, etc."
-                      required
-                    />
-                  </Field>
+          {/* ---------- STEP 3 ---------- */}
+          <Step>
+            <form className="flex flex-col gap-4">
+              <FieldGroup>
+                <Field>
+                  <FieldLabel htmlFor="location">Location</FieldLabel>
+                  <Input
+                    id="location"
+                    name="location"
+                    value={form.location}
+                    onChange={handleChange}
+                    placeholder="City / State / Country"
+                    required
+                  />
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="workType">Work Type</FieldLabel>
+                  <Input
+                    id="workType"
+                    name="workType"
+                    value={form.workType}
+                    onChange={handleChange}
+                    placeholder="E.g., Electrician, Plumber, etc."
+                    required
+                  />
+                </Field>
 
-                  <Field>
-                    <FieldLabel htmlFor="preferredWork">Preferred Work</FieldLabel>
-                    <Input
-                      id="preferredWork"
-                      name="preferredWork"
-                      value={form.preferredWork}
-                      onChange={handleChange}
-                      placeholder="Your preferred work type"
-                      required
-                    />
-                  </Field>
-                </FieldGroup>
-              </form>
-            </Step>
+                <Field>
+                  <FieldLabel htmlFor="preferredWork">Preferred Work</FieldLabel>
+                  <Input
+                    id="preferredWork"
+                    name="preferredWork"
+                    value={form.preferredWork}
+                    onChange={handleChange}
+                    placeholder="Your preferred work type"
+                    required
+                  />
+                </Field>
+              </FieldGroup>
+            </form>
+          </Step>
 
-            {/* ---------- STEP 4: CONFIRMATION ---------- */}
-            <Step>
-              <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                <h3 className="text-lg font-medium mb-2">Confirm the following:</h3>
-                <div className="flex flex-col gap-3">
-                  <label className="flex items-center gap-2">
-                    <Checkbox
-                      checked={form.confirmations.reliable}
-                      onCheckedChange={() => handleCheckbox("reliable")}
-                    />
-                    <span>I am a reliable worker</span>
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <Checkbox
-                      checked={form.confirmations.experienced}
-                      onCheckedChange={() => handleCheckbox("experienced")}
-                    />
-                    <span>I have experience in my chosen work type</span>
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <Checkbox
-                      checked={form.confirmations.honest}
-                      onCheckedChange={() => handleCheckbox("honest")}
-                    />
-                    <span>I promise to complete assigned work honestly</span>
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <Checkbox
-                      checked={form.confirmations.termsAccepted}
-                      onCheckedChange={() => handleCheckbox("termsAccepted")}
-                      required
-                    />
-                    <span>I agree to the terms and conditions</span>
-                  </label>
-                </div>
-
-              </form>
-            </Step>
-          </Stepper>
-        </CardContent>
+          {/* ---------- STEP 4 ---------- */}
+          <Step>
+            <div className="flex flex-col gap-4">
+              <h3 className="text-lg font-medium mb-2">Confirm the following:</h3>
+              <div className="flex flex-col gap-3">
+                <label className="flex items-center gap-2">
+                  <Checkbox
+                    checked={form.confirmations.reliable}
+                    onCheckedChange={() => handleCheckbox("reliable")}
+                  />
+                  <span>I am a reliable worker</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <Checkbox
+                    checked={form.confirmations.experienced}
+                    onCheckedChange={() => handleCheckbox("experienced")}
+                  />
+                  <span>I have experience in my chosen work type</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <Checkbox
+                    checked={form.confirmations.honest}
+                    onCheckedChange={() => handleCheckbox("honest")}
+                  />
+                  <span>I promise to complete assigned work honestly</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <Checkbox
+                    checked={form.confirmations.termsAccepted}
+                    onCheckedChange={() => handleCheckbox("termsAccepted")}
+                    required
+                  />
+                  <span>I agree to the terms and conditions</span>
+                </label>
+              </div>
+            </div>
+          </Step>
+        </Stepper>
+      </CardContent>
     </div>
   )
 }

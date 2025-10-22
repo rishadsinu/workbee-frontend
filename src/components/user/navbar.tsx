@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Sun, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { AuthService } from "@/services/auth-service";
 
 const Navbar = () => {
@@ -64,7 +63,7 @@ const Navbar = () => {
         <div className="text-2xl font-bold text-gray-900">WorkBee</div>
 
         {/* Links */}
-        {/* <ul className="flex space-x-8 text-gray-800 font-medium">
+        <ul className="flex space-x-8 text-gray-800 font-medium">
           <li>
             <button
               onClick={() => handleNavigation("/")}
@@ -89,7 +88,7 @@ const Navbar = () => {
               Contact
             </button>
           </li>
-        </ul> */}
+        </ul>
 
         {/* Right side */}
         <div className="flex items-center space-x-4 relative">

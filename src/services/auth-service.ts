@@ -42,7 +42,12 @@ export const AuthService = {
     //Admin Login
     adminLogin:(data:{email:string,password:string}) => {
         return api.post("/auth/admin/login",data)
-    }
+    },
+    //Fetch users list
+    getUsers:()=>{
+        return api.get("/auth/admin/get-users")
+    },
+    
 }
 
 
