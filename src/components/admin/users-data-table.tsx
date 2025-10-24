@@ -97,7 +97,6 @@ const Users = () => {
       const res = await AuthService.getUsers()
       let fetchedUsers: User[] = res.data.data.users;
 
-      // Filter users based on search
       if (searchValue) {
         fetchedUsers = fetchedUsers.filter(
           (u) =>
@@ -106,7 +105,6 @@ const Users = () => {
         );
       }
 
-      // Pagination
       const start = pagination.pageIndex * pagination.pageSize;
       const end = start + pagination.pageSize;
       const paginatedUsers = fetchedUsers.slice(start, end);

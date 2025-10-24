@@ -7,6 +7,14 @@ export const WorkService = {
 
     workerLogin:(data:{email:string, password:string}) => {
         return api.post("/work/worker-login",data)
+    },
+
+    approveWorkerApplication:(data:{email:string}) => {
+        return api.post("/work/approve-worker",data)
+    }, 
+
+    getAllWorkers:() => {
+        return api.get("/work/get-workers")
     }
 }
 

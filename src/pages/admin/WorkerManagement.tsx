@@ -1,8 +1,9 @@
+import WorkersManagementComponent from "@/components/admin/workers-management";
 
 export default function WorkerManagement() {
   return (
     <div>
-      <h1>Workers</h1>
+      <WorkersManagementComponent/>
     </div>
   )
 }

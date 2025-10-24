@@ -139,6 +139,20 @@ const Modal = ({
 }) => {
   if (!isOpen || !applier) return null
 
+
+
+const approveWorker = async () => {
+  try {
+    const res = await WorkService.approveWorkerApplication({email:applier.email})
+    if (res.data.success) {
+      window.location.reload()
+      alert('success fully approved worker')
+    }
+  } catch (error) {
+    alert(error)
+  }
+}
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
@@ -243,7 +257,10 @@ const Modal = ({
                   Enable this to approve the worker application
                 </p>
               </div>
-              <Button variant="outline">
+              <Button 
+                variant="outline"
+                onClick={approveWorker}  
+              >
                 Approve
               </Button>
             </div>
