@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils"
-import Stepper, { Step } from "../ui/stepper"
+import Stepper, { Step } from "./stepper"
 import { CardContent } from "@/components/ui/card"
 import {
   Field,

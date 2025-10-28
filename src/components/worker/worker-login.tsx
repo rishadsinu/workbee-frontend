@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import BackButton from "../common/back-button"
-import { WorkService } from "@/services/work-service"
+import { AuthService } from "@/services/auth-service"
 
 export function WorkerLoginForm({
     className,
@@ -34,7 +34,7 @@ export function WorkerLoginForm({
         e.preventDefault()
         try {
             const data = {email,password}
-            const result = await WorkService.workerLogin(data)
+            const result = await AuthService.workerLogin(data)
             if (result.data.success) {
                 alert("worker logined successfully")
                 navigate("/worker/worker-dashboard")
@@ -88,7 +88,7 @@ export function WorkerLoginForm({
                                         onChange={(e) => setPassword(e.target.value)}
                                         required
                                         placeholder="Enter your password"
-                                        className="pr-10" // extra right padding for icon space
+                                        className="pr-10" 
                                     />
 
                                     <button

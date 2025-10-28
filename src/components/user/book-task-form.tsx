@@ -1,0 +1,408 @@
+import { cn } from "@/lib/utils"
+import { CardContent } from "@/components/ui/card"
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Textarea } from "@/components/ui/textarea"
+import { useState } from "react"
+import { useNavigate } from "react-router-dom"
+import axios from "axios"
+import TaskBookStepper, { Step } from "./task-book-stepper"
+
+export function BookTaskForm({ className, ...props }: React.ComponentProps<"div">) {
+  const [form, setForm] = useState({
+    workTitle: "",
+    workCategory: "",
+    workType: "", // "oneDay" or "multipleDay"
+    date: "",
+    startDate: "",
+    endDate: "",
+    time: "",
+    description: "",
+    voiceFile: null as File | null,
+    videoFile: null as File | null,
+    duration: "",
+    budget: "",
+    currentLocation: "",
+    manualAddress: "",
+    landmark: "",
+    place: "",
+    contactNumber: "",
+    beforeImage: null as File | null,
+    petrolAllowance: "",
+    extraRequirements: "",
+    anythingElse: "",
+    termsAccepted: false,
+  })
+
+  const [isLoading, setIsLoading] = useState(false)
+  const navigate = useNavigate()
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setForm({ ...form, [name]: value })
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, files } = e.target
+    if (files && files.length > 0) {
+      setForm({ ...form, [name]: files[0] })
+    }
+  }
+
+  const handleSubmit = async () => {
+    try {
+      setIsLoading(true)
+
+      if (!form.workTitle || !form.workCategory || !form.contactNumber) {
+        alert("Please fill required fields.")
+        return
+      }
+
+      const formData = new FormData()
+      Object.entries(form).forEach(([key, value]) => {
+        if (value !== null) formData.append(key, value as any)
+      })
+
+      const result = await axios.post("http://localhost:4000/task/book-task", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+
+      if (result.data.success) {
+        alert("Task successfully submitted! We'll connect you with workers soon.")
+        navigate("/")
+      }
+    } catch (error) {
+      console.error(error)
+      alert("Error submitting task.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <div className={cn("flex flex-col gap-6", className)} {...props}>
+      <CardContent>
+        <TaskBookStepper
+          initialStep={1}
+          onSubmit={handleSubmit}
+          isSubmitting={isLoading}
+          backButtonText="Previous"
+          nextButtonText="Next"
+        >
+          {/* ---------- STEP 1 ---------- */}
+          <Step>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* ---------- LEFT SIDE ---------- */}
+              <div className="flex flex-col gap-4">
+                <Field>
+                  <FieldLabel htmlFor="workTitle">What is your work</FieldLabel>
+                  <Input
+                    id="workTitle"
+                    name="workTitle"
+                    value={form.workTitle}
+                    onChange={handleChange}
+                    placeholder="E.g., Fix kitchen sink"
+                    required
+                  />
+                </Field>
+
+                <Field>
+                  <FieldLabel htmlFor="workCategory">Work Category</FieldLabel>
+                  <Input
+                    id="workCategory"
+                    name="workCategory"
+                    value={form.workCategory}
+                    onChange={handleChange}
+                    placeholder="E.g., Plumbing, Cleaning"
+                    required
+                  />
+                </Field>
+              </div>
+
+              {/* ---------- RIGHT SIDE ---------- */}
+              <div className="flex flex-col gap-4">
+                <Field>
+                  <FieldLabel>Work Duration Type</FieldLabel>
+                  <div className="flex gap-4 mt-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="workType"
+                        value="oneDay"
+                        checked={form.workType === "oneDay"}
+                        onChange={handleChange}
+                        className="w-4 h-4 cursor-pointer"
+                      />
+                      <span className="text-sm">One Day Work</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="workType"
+                        value="multipleDay"
+                        checked={form.workType === "multipleDay"}
+                        onChange={handleChange}
+                        className="w-4 h-4 cursor-pointer"
+                      />
+                      <span className="text-sm">Multiple Day Work</span>
+                    </label>
+                  </div>
+                </Field>
+
+                {form.workType === "oneDay" && (
+                  <Field>
+                    <FieldLabel htmlFor="date">Date</FieldLabel>
+                    <Input
+                      id="date"
+                      name="date"
+                      type="date"
+                      value={form.date}
+                      onChange={handleChange}
+                      required
+                    />
+                  </Field>
+                )}
+
+                {form.workType === "multipleDay" && (
+                  <>
+                    <Field>
+                      <FieldLabel htmlFor="startDate">Start Date</FieldLabel>
+                      <Input
+                        id="startDate"
+                        name="startDate"
+                        type="date"
+                        value={form.startDate}
+                        onChange={handleChange}
+                        required
+                      />
+                    </Field>
+                    <Field>
+                      <FieldLabel htmlFor="endDate">End Date</FieldLabel>
+                      <Input
+                        id="endDate"
+                        name="endDate"
+                        type="date"
+                        value={form.endDate}
+                        onChange={handleChange}
+                        required
+                      />
+                    </Field>
+                  </>
+                )}
+
+                {form.workType && (
+                  <Field>
+                    <FieldLabel htmlFor="time">Time (when to start work)</FieldLabel>
+                    <Input
+                      id="time"
+                      name="time"
+                      type="time"
+                      value={form.time}
+                      onChange={handleChange}
+                      required
+                    />
+                  </Field>
+                )}
+              </div>
+            </div>
+          </Step>
+
+          {/* ---------- STEP 2 ---------- */}
+          <Step>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* ---------- LEFT SIDE ---------- */}
+              <div className="flex flex-col gap-4">
+                <Field>
+                  <FieldLabel htmlFor="description">Description about your work (min 30 words)</FieldLabel>
+                  <Textarea
+                    id="description"
+                    name="description"
+                    value={form.description}
+                    onChange={handleChange}
+                    placeholder="Explain what needs to be done..."
+                    required
+                  />
+                </Field>
+
+                <Field>
+                  <FieldLabel htmlFor="voiceFile">Voice Note, describe your work through voice note(optional)</FieldLabel>
+                  <Input
+                    id="voiceFile"
+                    name="voiceFile"
+                    type="file"
+                    accept="audio/*"
+                    onChange={handleFileChange}
+                  />
+                </Field>
+              </div>
+
+              {/* ---------- RIGHT SIDE ---------- */}
+              <div className="flex flex-col gap-4">
+                <Field>
+                  <FieldLabel htmlFor="videoFile">Video, describe your work through video note(optional)</FieldLabel>
+                  <Input
+                    id="videoFile"
+                    name="videoFile"
+                    type="file"
+                    accept="video/*"
+                    onChange={handleFileChange}
+                  />
+                </Field>
+
+                <Field>
+                  <FieldLabel htmlFor="beforeImage">Before Image (optional)</FieldLabel>
+                  <Input
+                    id="beforeImage"
+                    name="beforeImage"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                  />
+                </Field>
+              </div>
+            </div>
+          </Step>
+
+          {/* ---------- STEP 3 ---------- */}
+          <Step>
+            <FieldGroup>
+              <Field>
+                <FieldLabel htmlFor="duration">Duration & Timing(how much times want to complate this word)</FieldLabel>
+                <Input
+                  id="duration"
+                  name="duration"
+                  value={form.duration}
+                  onChange={handleChange}
+                  placeholder="E.g., 2 hours / 9am to 11am"
+                />
+              </Field>
+
+              <Field>
+                <FieldLabel htmlFor="budget">Budget(how much pay for this work)</FieldLabel>
+                <Input
+                  id="budget"
+                  name="budget"
+                  type="number"
+                  value={form.budget}
+                  onChange={handleChange}
+                  placeholder="Enter estimated budget"
+                />
+              </Field>
+
+              <Field>
+                <FieldLabel htmlFor="petrolAllowance">Travel Allowance</FieldLabel>
+                <Input
+                  id="petrolAllowance"
+                  name="petrolAllowance"
+                  type="text"
+                  value={form.petrolAllowance}
+                  onChange={handleChange}
+                  placeholder="Optional extra for travel"
+                />
+              </Field>
+            </FieldGroup>
+          </Step>
+
+          {/* ---------- STEP 4 ---------- */}
+          <Step>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* ---------- LEFT SIDE ---------- */}
+              <div className="flex flex-col gap-4">
+                <Field>
+                  <FieldLabel htmlFor="currentLocation">Current Location (Map)</FieldLabel>
+                  <Input
+                    id="currentLocation"
+                    name="currentLocation"
+                    value={form.currentLocation}
+                    onChange={handleChange}
+                    placeholder="Google map link or coordinates"
+                  />
+                </Field>
+
+                <Field>
+                  <FieldLabel htmlFor="manualAddress">Address details</FieldLabel>
+                  <Textarea
+                    id="manualAddress"
+                    name="manualAddress"
+                    value={form.manualAddress}
+                    onChange={handleChange}
+                    placeholder="Street, city, pincode"
+                  />
+                </Field>
+              </div>
+
+              {/* ---------- RIGHT SIDE ---------- */}
+              <div className="flex flex-col gap-4">
+                <Field>
+                  <FieldLabel htmlFor="landmark">Landmark</FieldLabel>
+                  <Input
+                    id="landmark"
+                    name="landmark"
+                    value={form.landmark}
+                    onChange={handleChange}
+                    placeholder="Nearby landmark"
+                  />
+                </Field>
+
+                <Field>
+                  <FieldLabel htmlFor="contactNumber">Contact Number</FieldLabel>
+                  <Input
+                    id="contactNumber"
+                    name="contactNumber"
+                    type="tel"
+                    value={form.contactNumber}
+                    onChange={handleChange}
+                    placeholder="Enter contact number"
+                    required
+                  />
+                </Field>
+              </div>
+            </div>
+          </Step>
+
+          {/* ---------- STEP 5 ---------- */}
+          <Step>
+            <FieldGroup>
+              <Field>
+                <FieldLabel htmlFor="extraRequirements">Extra Requirements</FieldLabel>
+                <Textarea
+                  id="extraRequirements"
+                  name="extraRequirements"
+                  value={form.extraRequirements}
+                  onChange={handleChange}
+                  placeholder="Tools, materials, or worker count etc."
+                />
+              </Field>
+
+              <Field>
+                <FieldLabel htmlFor="anythingElse">Anything Else</FieldLabel>
+                <Textarea
+                  id="anythingElse"
+                  name="anythingElse"
+                  value={form.anythingElse}
+                  onChange={handleChange}
+                  placeholder="Any other notes for workers"
+                />
+              </Field>
+
+              <label className="flex items-center gap-2 mt-3">
+                <Checkbox
+                  checked={form.termsAccepted}
+                  onCheckedChange={() =>
+                    setForm({ ...form, termsAccepted: !form.termsAccepted })
+                  }
+                />
+                <span>I agree to the terms and conditions</span>
+              </label>
+            </FieldGroup>
+          </Step>
+        </TaskBookStepper>
+      </CardContent>
+    </div>
+  )
+}

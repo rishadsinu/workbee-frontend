@@ -48,6 +48,13 @@ export const AuthService = {
         return api.get("/auth/admin/get-users")
     },
     
+
+    // Worker Api's
+
+    //worker Login
+    workerLogin:(data:{email:string, password:string}) => {
+        return api.post("/auth/worker-login",data)
+    },
 }
 
 

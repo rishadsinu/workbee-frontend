@@ -3,7 +3,7 @@ import type { HTMLAttributes, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import type { Variants } from 'motion/react';
 import BackButton from '../common/back-button';
-import { CardDescription, CardHeader, CardTitle } from './card';
+import { CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { useNavigate } from 'react-router-dom';
 
 
@@ -30,13 +30,13 @@ interface StepperProps extends HTMLAttributes<HTMLDivElement> {
   }) => ReactNode;
 }
 
-export default function Stepper({
+export default function TaskBookStepper({
   children,
   initialStep = 1,
   onStepChange = () => { },
   onFinalStepCompleted = () => { },
-  onSubmit, // NEW: Destructure onSubmit
-  isSubmitting = false, // NEW: Destructure isSubmitting
+  onSubmit,
+  isSubmitting = false,
   stepCircleContainerClassName = '',
   stepContainerClassName = '',
   contentClassName = '',
@@ -81,7 +81,6 @@ export default function Stepper({
     }
   };
 
-  // NEW: Modified handleComplete to call onSubmit
   const handleComplete = async () => {
     if (onSubmit) {
       await onSubmit();
@@ -97,17 +96,18 @@ export default function Stepper({
       {...rest}
     >
       <div
-        className={`relative left-1/2 -translate-x-1/2 w-[130%] items-center rounded-3xl shadow-xl border border-gray-110 ${stepCircleContainerClassName}`}
+        className={`relative w-full items-center rounded-3xl shadow-xl border border-gray-110 ${stepCircleContainerClassName}`}
       >
         <div className='ml-5 mt-5'>
           <BackButton />
         </div>
         <CardHeader className='mt-5 mb-4'>
-          <CardTitle>Apply to become a worker</CardTitle>
+          <CardTitle>Fill in your work details and get responses from nearby suitable workers.</CardTitle>
           <CardDescription>
-            Create your account and Earn money your way
+            Share the details — nearby workers who are interested can chat with you and make a deal easily.
           </CardDescription>
         </CardHeader>
+
 
         <div className={`${stepContainerClassName} flex w-full items-center p-8`}>
           {stepsArray.map((_, index) => {
@@ -158,8 +158,8 @@ export default function Stepper({
                   onClick={handleBack}
                   disabled={isSubmitting} // NEW: Disable during submission
                   className={`duration-350 rounded px-2 py-1 transition ${currentStep === 1 || isSubmitting
-                      ? 'pointer-events-none opacity-50 text-neutral-400'
-                      : 'text-neutral-400 hover:text-neutral-800'
+                    ? 'pointer-events-none opacity-50 text-neutral-400'
+                    : 'text-neutral-400 hover:text-neutral-800'
                     }`}
                   {...backButtonProps}
                 >
@@ -176,18 +176,7 @@ export default function Stepper({
                 {isSubmitting ? 'Submitting...' : isLastStep ? 'Apply' : nextButtonText}
               </button>
             </div>
-            <div>
-              <div className="mt-10 text-center text-sm">
-                Already have an worker account?{' '}
-                <span
-                  onClick={() => navigate("/worker/worker-login")}
-                  className="underline underline-offset-4 cursor-pointer text-gray-600 hover:text-gray-800"
 
-                >
-                  Sign in
-                </span>
-              </div>
-            </div>
           </div>
         )}
       </div>

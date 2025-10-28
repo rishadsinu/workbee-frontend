@@ -1,12 +1,14 @@
 import { Button } from "@/components/ui/button";
 import FloatingIcons from "@/components/common/animatedIcons";
 import Navbar from "@/components/user/navbar";
+import { useNavigate } from "react-router-dom";
 
 export default function Login() {
+  const navigate = useNavigate()
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
-      <Navbar/>
-      
+      <Navbar />
+
       <main className="relative ml-50 flex items-center min-h-[calc(100vh-95px)] px-6 max-w-7xl mx-auto">
         <div className="flex-1 max-w-md mx-auto mr-25">
           <div className="flex-1 max-w-2xl">
@@ -22,9 +24,17 @@ export default function Login() {
               <br />
               waiting.
             </p>
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 text-base">
-              Assign Now
+            <Button
+              onClick={() => navigate('/task-booking')}
+              className="bg-primary rounded-full text-primary-foreground hover:bg-primary/90 px-6 py-3 text-base">
+              Post Work
             </Button>
+            <Button
+              onClick={() => navigate('/task-booking')}
+              className="bg-white text-black rounded-full ml-2 hover:bg-gray-100 border border-gray-300 px-6 py-3 text-base">
+              Find a Worker
+            </Button>
+
           </div>
         </div>
 

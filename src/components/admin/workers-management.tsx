@@ -323,7 +323,7 @@ export default function WorkersManagementComponent() {
                                                     className="data-[state=on]:bg-transparent data-[state=on]:*:[svg]:fill-blue-500 data-[state=on]:*:[svg]:stroke-blue-500"
                                                 >
                                                     <BookmarkIcon />
-                                                    Approve
+                                                    Approved
                                                 </Toggle>
                                             </td>
 
