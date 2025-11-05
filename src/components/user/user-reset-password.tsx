@@ -20,15 +20,15 @@ export function UserResetPassword() {
     e.preventDefault();
 
     if (!password) {
-    alert("Password is required");
-    return;
-  }
+      alert("Password is required");
+      return;
+    }
     if (password !== confirm) {
       alert("Passwords do not match");
       return;
     }
 
-  
+
 
     try {
       setLoading(true);

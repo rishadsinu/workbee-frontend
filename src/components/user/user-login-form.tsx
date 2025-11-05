@@ -41,6 +41,8 @@ export function LoginForm({
             const res = await AuthService.login(form)
             if (res.data.success) {
                 localStorage.setItem("token", res.data.data.token);
+                localStorage.setItem("userId", res.data.data.userId || res.data.data.user?._id || res.data.data.user?.id);
+
                 alert(res.data.message || "Login Successful");
                 navigate("/");
             } else {
@@ -53,15 +55,16 @@ export function LoginForm({
         }
     };
 
+
     //google auth
     const handleGoogleAuthLogin = async (credentialResponse: any) => {
         try {
-
             const res = await AuthService.googleAuthLogin({ credential: credentialResponse.credential })
 
             if (res.data.success) {
                 localStorage.setItem("token", res.data.token);
                 localStorage.setItem("user", JSON.stringify(res.data.data.user));
+                localStorage.setItem("userId", res.data.data.user._id || res.data.data.user.id);
 
                 alert(res.data.message || "Google Auth Successful");
                 navigate("/");

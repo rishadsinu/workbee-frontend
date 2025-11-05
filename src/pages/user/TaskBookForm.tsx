@@ -1,9 +1,9 @@
-import MakeQuotationForm from "@/components/user/user-make-quotation";
+import PostQuotationForm from "@/components/user/user-post-quotation";
 
 export default function TaskBookForm() {
   return (
     <div>
-      <MakeQuotationForm/>
+      <PostQuotationForm/>
     </div>
   )
 }

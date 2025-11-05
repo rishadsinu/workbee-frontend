@@ -11,6 +11,10 @@ export const WorkService = {
 
     getAllWorkers:() => {
         return api.get("/work/get-workers")
+    },
+
+    getAllWorks:()=>{
+        return api.get("/work/get-all-works")
     }
 }
 

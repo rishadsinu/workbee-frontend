@@ -173,7 +173,7 @@ export default function TaskBookStepper({
                 {...nextButtonProps}
               >
                 {/* NEW: Show loading state */}
-                {isSubmitting ? 'Submitting...' : isLastStep ? 'Apply' : nextButtonText}
+                {isSubmitting ? 'Posting...' : isLastStep ? 'Post Work' : nextButtonText}
               </button>
             </div>
 

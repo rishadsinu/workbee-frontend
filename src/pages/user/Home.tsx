@@ -4,7 +4,17 @@ import Navbar from "@/components/user/navbar";
 import { useNavigate } from "react-router-dom";
 
 export default function Login() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+
+  const handleNavigate = () => {
+    const userId = localStorage.getItem("userId"); 
+    if (!userId) {
+      navigate("/login");
+    } else {
+      navigate("/task-booking");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
       <Navbar />
@@ -24,17 +34,22 @@ export default function Login() {
               <br />
               waiting.
             </p>
+
+            {/* Post Work button */}
             <Button
-              onClick={() => navigate('/task-booking')}
-              className="bg-primary rounded-full text-primary-foreground hover:bg-primary/90 px-6 py-3 text-base">
+              onClick={handleNavigate}
+              className="bg-primary rounded-full text-primary-foreground hover:bg-primary/90 px-6 py-3 text-base"
+            >
               Post Work
             </Button>
+
+            {/* Find a Worker button */}
             <Button
-              onClick={() => navigate('/task-booking')}
-              className="bg-white text-black rounded-full ml-2 hover:bg-gray-100 border border-gray-300 px-6 py-3 text-base">
+              onClick={handleNavigate}
+              className="bg-white text-black rounded-full ml-2 hover:bg-gray-100 border border-gray-300 px-6 py-3 text-base"
+            >
               Find a Worker
             </Button>
-
           </div>
         </div>
 

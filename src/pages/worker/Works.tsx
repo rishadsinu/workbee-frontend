@@ -1,8 +1,9 @@
+import WorksTable from "@/components/worker/works-table"
 
 export default function Works() {
   return (
     <div>
-      <h1>All Works</h1>
+      <WorksTable/>
     </div>
   )
 }

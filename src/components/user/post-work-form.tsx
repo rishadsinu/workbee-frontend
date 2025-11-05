@@ -8,13 +8,14 @@ import {
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import axios from "axios"
 import TaskBookStepper, { Step } from "./task-book-stepper"
 
-export function BookTaskForm({ className, ...props }: React.ComponentProps<"div">) {
+export function PostWorkForm({ className, ...props }: React.ComponentProps<"div">) {
   const [form, setForm] = useState({
+    userId: "",
     workTitle: "",
     workCategory: "",
     workType: "", // "oneDay" or "multipleDay"
@@ -39,6 +40,12 @@ export function BookTaskForm({ className, ...props }: React.ComponentProps<"div"
     termsAccepted: false,
   })
 
+  useEffect(() => {
+    const userId = localStorage.getItem("userId")
+    if (userId) {
+      setForm(prev => ({ ...prev, userId }))
+    }
+  }, [])
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
 
@@ -58,32 +65,47 @@ export function BookTaskForm({ className, ...props }: React.ComponentProps<"div"
     try {
       setIsLoading(true)
 
+      if (!form.userId) {
+        alert("Please login first.")
+        navigate("/login")
+        return
+      }
+
       if (!form.workTitle || !form.workCategory || !form.contactNumber) {
         alert("Please fill required fields.")
         return
       }
 
+      if (!form.workType) {
+        alert("Please select work duration type (One Day or Multiple Days)")
+        return
+      }
+
       const formData = new FormData()
       Object.entries(form).forEach(([key, value]) => {
-        if (value !== null) formData.append(key, value as any)
+        if (value !== null && value !== "") {
+          formData.append(key, value as any)
+        }
       })
 
-      const result = await axios.post("http://localhost:4000/task/book-task", formData, {
+      const result = await axios.post("http://localhost:4000/work/post-work", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       })
+
+      console.log("Response:", result.data);
 
       if (result.data.success) {
         alert("Task successfully submitted! We'll connect you with workers soon.")
         navigate("/")
       }
-    } catch (error) {
-      console.error(error)
-      alert("Error submitting task.")
+    } catch (error: any) {
+      console.error("Full error object:", error)
+      console.error("Error response:", error.response?.data)
+      alert(`Error submitting task: ${error.response?.data?.message || error.message}`)
     } finally {
       setIsLoading(false)
     }
   }
-
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <CardContent>
@@ -406,3 +428,4 @@ export function BookTaskForm({ className, ...props }: React.ComponentProps<"div"
     </div>
   )
 }
+
