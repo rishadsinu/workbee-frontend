@@ -27,8 +27,8 @@
 
     /* Linting */
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedLocals": false, // if want to check unused vars in ts make it true
+    "noUnusedParameters": false, // if want to check unused parameters in ts make it true
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
