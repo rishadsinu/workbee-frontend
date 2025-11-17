@@ -19,6 +19,7 @@ import { useNavigate } from "react-router-dom"
 import BackButton from "../common/back-button"
 import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google"
 import { AuthService } from "@/services/auth-service"
+import { AuthHelper } from "@/utils/user-auth-helper"
 
 export function RegisterForm({
     className,
@@ -50,9 +51,10 @@ export function RegisterForm({
         setIsLoading(true)
         try {
             const { confirmPassword, ...registrationData } = form
-            const res =  await AuthService.register(registrationData)
+            const res = await AuthService.register(registrationData)
             if (res.data.success) {
-                localStorage.setItem("userId", res.data.data.userId)
+                // localStorage.setItem("userId", res.data.data.userId)
+                AuthHelper.setUserId(res.data.data.userId)
                 alert(res.data.message)
                 navigate("/otp")
             } else {
@@ -67,42 +69,26 @@ export function RegisterForm({
     }
 
     //google auth
-    // const handleGoogleAuthLogin = async (credentialResponse: any) => {
-    //     try {
-    //         const res = await AuthService.googleAuthLogin({credential: credentialResponse.credential})
+    const handleGoogleAuthLogin = async (credentialResponse: any) => {
+        try {
+            const res = await AuthService.googleAuthLogin({ credential: credentialResponse.credential })
 
-    //         if (res.data.success) {
-    //             localStorage.setItem("token", res.data.token);
-    //             localStorage.setItem("user", JSON.stringify(res.data.data.user));
+            if (res.data.success) {
+                // localStorage.setItem("token", res.data.token);
+                // localStorage.setItem("user", JSON.stringify(res.data.data.user));
+                // localStorage.setItem("userId", res.data.data.user._id || res.data.data.user.id);
 
-    //             alert(res.data.message || "Google Auth Successful");
-    //             navigate("/");
-    //         } else {
-    //             alert(res.data.message || "Google Auth Failed");
-    //         }
-    //     } catch (err: any) {
-    //         alert(err.response?.data?.message || "Google Login Failed");
-    //     }
-    // };
-const handleGoogleAuthLogin = async (credentialResponse: any) => {
-    try {
-        const res = await AuthService.googleAuthLogin({credential: credentialResponse.credential})
-
-        if (res.data.success) {
-            localStorage.setItem("token", res.data.token);
-            localStorage.setItem("user", JSON.stringify(res.data.data.user));
-            // ADD THIS: Store userId
-            localStorage.setItem("userId", res.data.data.user._id || res.data.data.user.id);
-
-            alert(res.data.message || "Google Auth Successful");
-            navigate("/");
-        } else {
-            alert(res.data.message || "Google Auth Failed");
+                AuthHelper.setAuth(res.data.token, res.data.data.user);
+                
+                alert(res.data.message || "Google Auth Successful");
+                navigate("/");
+            } else {
+                alert(res.data.message || "Google Auth Failed");
+            }
+        } catch (err: any) {
+            alert(err.response?.data?.message || "Google Login Failed");
         }
-    } catch (err: any) {
-        alert(err.response?.data?.message || "Google Login Failed");
-    }
-};
+    };
 
     return (
         <div className={cn("flex flex-col gap-6", className)} {...props}>

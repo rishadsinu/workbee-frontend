@@ -19,6 +19,7 @@ import { Eye, EyeOff } from "lucide-react"
 import BackButton from "../common/back-button"
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthService } from "@/services/auth-service"
+import { AuthHelper } from "@/utils/user-auth-helper"
 
 export function LoginForm({
     className,
@@ -34,14 +35,36 @@ export function LoginForm({
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
+    // const handleSubmit = async (e: React.FormEvent) => {
+    //     e.preventDefault();
+    //     setIsLoading(true);
+    //     try {
+    //         const res = await AuthService.login(form)
+    //         if (res.data.success) {
+    //             localStorage.setItem("token", res.data.data.token);
+    //             localStorage.setItem("userId", res.data.data.userId || res.data.data.user?._id || res.data.data.user?.id);
+
+    //             alert(res.data.message || "Login Successful");
+    //             navigate("/");
+    //         } else {
+    //             alert(res.data.message || "Login failed");
+    //         }
+    //     } catch (err: any) {
+    //         alert(err.response?.data?.message || "Something went wrong");
+    //     } finally {
+    //         setIsLoading(false);
+    //     }
+    // };
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
+
         try {
-            const res = await AuthService.login(form)
+            const res = await AuthService.login(form);
+
             if (res.data.success) {
-                localStorage.setItem("token", res.data.data.token);
-                localStorage.setItem("userId", res.data.data.userId || res.data.data.user?._id || res.data.data.user?.id);
+                // Use AuthHelper → No more localStorage code
+                AuthHelper.setAuth(res.data.data.token, res.data.data.user);
 
                 alert(res.data.message || "Login Successful");
                 navigate("/");
@@ -56,16 +79,33 @@ export function LoginForm({
     };
 
 
+
     //google auth
+    // const handleGoogleAuthLogin = async (credentialResponse: any) => {
+    //     try {
+    //         const res = await AuthService.googleAuthLogin({ credential: credentialResponse.credential })
+
+    //         if (res.data.success) {
+    //             localStorage.setItem("token", res.data.token);
+    //             localStorage.setItem("user", JSON.stringify(res.data.data.user));
+    //             localStorage.setItem("userId", res.data.data.user._id || res.data.data.user.id);
+
+    //             alert(res.data.message || "Google Auth Successful");
+    //             navigate("/");
+    //         } else {
+    //             alert(res.data.message || "Google Auth Failed");
+    //         }
+    //     } catch (err: any) {
+    //         alert(err.response?.data?.message || "Google Login Failed");
+    //     }
+    // };
+    // google auth
     const handleGoogleAuthLogin = async (credentialResponse: any) => {
         try {
-            const res = await AuthService.googleAuthLogin({ credential: credentialResponse.credential })
+            const res = await AuthService.googleAuthLogin({ credential: credentialResponse.credential });
 
             if (res.data.success) {
-                localStorage.setItem("token", res.data.token);
-                localStorage.setItem("user", JSON.stringify(res.data.data.user));
-                localStorage.setItem("userId", res.data.data.user._id || res.data.data.user.id);
-
+                AuthHelper.setAuth(res.data.token, res.data.data.user);
                 alert(res.data.message || "Google Auth Successful");
                 navigate("/");
             } else {
@@ -75,6 +115,7 @@ export function LoginForm({
             alert(err.response?.data?.message || "Google Login Failed");
         }
     };
+
 
     return (
         <div className={cn("flex flex-col gap-6", className)} {...props}>

@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import Logo from "@/assets/logo.png"
 import { Button } from "@/components/ui/button"
+import { AuthHelper } from "@/utils/user-auth-helper"
 
 
 const VerifyOtp = () => {
@@ -17,7 +18,7 @@ const VerifyOtp = () => {
       const res = await axios.post('http://localhost:4000/auth/verifyOtp', { userId, otp });
 
       if (res.data.success) {
-        localStorage.setItem('token', res.data.data.token);
+        AuthHelper.setToken(res.data.data.token)
         alert(res.data.message);
         navigate('/');
       } else {

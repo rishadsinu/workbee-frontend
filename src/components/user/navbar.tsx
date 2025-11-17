@@ -4,6 +4,7 @@ import { Sun } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AuthService } from "@/services/auth-service";
 import ProfileDropDownMenu from "./profile-drop-down";
+import { AuthHelper } from "@/utils/user-auth-helper";
 
 const Navbar = () => {
   const [user, setUser] = useState<any>(null);
@@ -11,34 +12,37 @@ const Navbar = () => {
 
   useEffect(() => {
     const verifyUser = async () => {
-      const token = localStorage.getItem("token");
-      const googleUser = localStorage.getItem("user");
+      const token = AuthHelper.getToken();
+      const googleUser = AuthHelper.getUser();
 
+      // If logged in using Google
       if (googleUser) {
-        const parsedUser = JSON.parse(googleUser);
-        setUser(parsedUser);
-        if (!localStorage.getItem("userId")) {
-          localStorage.setItem("userId", parsedUser._id || parsedUser.id);
+        setUser(googleUser);
+
+        if (!AuthHelper.getUserId()) {
+          AuthHelper.setUserId(googleUser._id || googleUser.id);
         }
         return;
       }
 
+      // No token -> not logged in
       if (!token) return;
 
       try {
+        // Backend verification
         const res = await AuthService.verifyUser();
 
         if (res.data.success) {
-          setUser(res.data.data);
-          localStorage.setItem("userId", res.data.data._id || res.data.data.id);
+          const loggedUser = res.data.data;
+
+          setUser(loggedUser);
+          AuthHelper.setUserId(loggedUser._id || loggedUser.id);
         } else {
-          localStorage.removeItem("token");
-          localStorage.removeItem("userId");
+          AuthHelper.clearAuth();
           setUser(null);
         }
       } catch {
-        localStorage.removeItem("token");
-        localStorage.removeItem("userId");
+        AuthHelper.clearAuth();
         setUser(null);
       }
     };
@@ -47,16 +51,12 @@ const Navbar = () => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("userId");
+    AuthHelper.clearAuth();
     setUser(null);
     navigate("/");
   };
 
-  const handleNavigation = (path: string) => {
-    navigate(path);
-  };
+  const handleNavigation = (path: string) => navigate(path);
 
   return (
     <header className="w-full flex justify-center mt-8">
@@ -74,6 +74,7 @@ const Navbar = () => {
               About Us
             </button>
           </li>
+
           <li>
             <button
               onClick={() => handleNavigation("/questions")}
@@ -82,6 +83,7 @@ const Navbar = () => {
               How It Works
             </button>
           </li>
+
           <li>
             <button
               onClick={() => handleNavigation("/contact")}
@@ -92,7 +94,7 @@ const Navbar = () => {
           </li>
         </ul>
 
-        {/* Right side */}
+        {/* Right Side */}
         <div className="flex items-center space-x-4">
           <button className="p-2 rounded-full border hover:bg-gray-100 transition">
             <Sun className="w-5 h-5" />

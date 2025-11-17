@@ -17,6 +17,7 @@ import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { AuthService } from "@/services/auth-service"
 import { Eye, EyeOff } from "lucide-react"
+import { AdminAuthHelper } from "@/utils/admin-auth-helper"
 
 export function LoginForm({
   className,
@@ -37,7 +38,8 @@ export function LoginForm({
       console.log('fontenddddd', res.data)
       const token = res.data.data?.token || res.data.token
       if (token) {
-        localStorage.setItem("adminToken", token)
+        // localStorage.setItem("adminToken", token)
+        AdminAuthHelper.setToken(token)
         navigate('/admin/dashboard')
       } else {
 
