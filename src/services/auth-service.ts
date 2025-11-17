@@ -25,11 +25,13 @@ export const AuthService = {
     },
 
     //Verify User
-    verifyUser:(token:string) => {
-        return api.get("/auth/verify",{
-            headers:{Authorization:`Bearer ${token}`}
-        })
-    },
+    // verifyUser:(token:string) => {
+    //     return api.get("/auth/verify",{
+    //         headers:{Authorization:`Bearer ${token}`}
+    //     })
+    // },
+    verifyUser: () => api.get("/auth/verify"),
+
 
     //Google Auth
     googleAuthLogin:(data:{credential:string}) => {
