@@ -10,8 +10,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import axios from "axios"
 import TaskBookStepper, { Step } from "./task-book-stepper"
+import { WorkService } from "@/services/work-service"
 
 export function PostWorkForm({ className, ...props }: React.ComponentProps<"div">) {
   const [form, setForm] = useState({
@@ -88,9 +88,7 @@ export function PostWorkForm({ className, ...props }: React.ComponentProps<"div"
         }
       })
 
-      const result = await axios.post("http://localhost:4000/work/post-work", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      })
+      const result = await WorkService.postWork(formData)
 
       console.log("Response:", result.data);
 

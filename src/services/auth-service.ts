@@ -9,6 +9,10 @@ export const AuthService = {
         return api.post("/auth/register", data)
     },
 
+    verifyOtp: (data: { userId: string | null; otp: string }) => {
+        return api.post("/auth/verifyOtp", data);
+    },
+
     //Login
     login: (data: { email: string, password: string }) => {
         return api.post("/auth/login", data)
@@ -25,11 +29,6 @@ export const AuthService = {
     },
 
     //Verify User
-    // verifyUser:(token:string) => {
-    //     return api.get("/auth/verify",{
-    //         headers:{Authorization:`Bearer ${token}`}
-    //     })
-    // },
     verifyUser: () => api.get("/auth/verify"),
 
 

@@ -15,6 +15,16 @@ export const WorkService = {
 
     getAllWorks:()=>{
         return api.get("/work/get-all-works")
+    },
+
+    postWork: (formData:FormData) => {
+        return api.post("/work/post-work",formData, {
+            headers:{"Content-Type":"multipart/form-data"}
+        })
+    },
+
+    applyForWorker:(workerData:any) => {
+        return api.post("work/apply-worker",workerData)
     }
 }
 

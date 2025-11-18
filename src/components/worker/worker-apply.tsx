@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import axios from "axios"
+import { WorkService } from "@/services/work-service"
 
 export function ApplyWorkerForm({ className, ...props }: React.ComponentProps<"div">) {
   const [form, setForm] = useState({
@@ -83,7 +83,7 @@ export function ApplyWorkerForm({ className, ...props }: React.ComponentProps<"d
         }
       }
 
-      const result = await axios.post("http://localhost:4000/work/apply-worker", workerData)
+      const result = await WorkService.applyForWorker(workerData)
 
       if (result.data.success) {
         alert("Successfully applied.check your email, We'll update in 1 hour.")
