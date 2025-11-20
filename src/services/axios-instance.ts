@@ -1,3 +1,5 @@
+import { AdminAuthHelper } from "@/utils/admin-auth-helper";
+import { AuthHelper } from "@/utils/user-auth-helper";
 import axios from "axios";
 
 const baseURL = import.meta.env.VITE_GATEWAY_URL
@@ -13,8 +15,10 @@ export const api = axios.create({
 // Req Interceptors
 
 api.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token");
+    const userToken = AuthHelper.getToken()
+    const adminToken = AdminAuthHelper.getToken()
 
+    const token = userToken || adminToken;
     if (token) {
         config.headers.Authorization = `Bearer ${token}`
     }
@@ -30,9 +34,10 @@ api.interceptors.response.use((response) => {
     return response
 }, (error) => {
     if (error.response?.status == 401) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        localStorage.removeItem("userId");
+        
+        AuthHelper.clearAuth()
+        AdminAuthHelper.clearAuth()
+
         window.location.href = "/login"
     }
 

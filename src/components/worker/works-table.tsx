@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { Eye, X, Search, MapPin, Calendar, Clock, DollarSign, Filter } from "lucide-react"
 import { WorkService } from "@/services/work-service"
+import axios from "axios"
 
 // Types
 interface Work {
@@ -153,6 +154,18 @@ const getStatusVariant = (status: string): "default" | "success" | "warning" | "
   }
 }
 
+// // const 
+// const getWorkersCount = () => {
+//   try {
+//     let count = axios.get("http://localhost:4000/auth/get-workerscount")
+//   } catch (error) {
+//     alert(error)
+//   }
+// }
+// useEffect(()=>{
+//   get
+// })
+
 // Helper function to format date
 const formatDate = (dateString?: string | Date) => {
   if (!dateString) return 'N/A'
@@ -190,6 +203,9 @@ const WorkDetailsModal = ({
           >
             <X className="w-5 h-5" />
           </button>
+        </div>
+        <div>
+          <h1>count of approved workes</h1>
         </div>
 
         <div className="px-6 py-4 space-y-6">

@@ -137,7 +137,7 @@ const Users = () => {
       accessorKey: "role",
       header: "Role",
       cell: ({ row }) => <div>{row.original.role}</div>,
-    },
+    }
   ];
 
   const table = useReactTable<User>({
