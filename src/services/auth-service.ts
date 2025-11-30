@@ -19,8 +19,8 @@ export const AuthService = {
     },
 
     //Forgot Password
-    forgotPassword:(data:{email:string}) => {
-        return api.post("/auth/forget-password",data)
+    forgotPassword: (data: { email: string }) => {
+        return api.post("/auth/forget-password", data)
     },
 
     //Reset Password
@@ -33,29 +33,35 @@ export const AuthService = {
 
 
     //Google Auth
-    googleAuthLogin:(data:{credential:string}) => {
+    googleAuthLogin: (data: { credential: string }) => {
         return api.post("/auth/google-login", data)
     },
 
-    
+
     // Admin Api's
 
     //Admin Login
-    adminLogin:(data:{email:string,password:string}) => {
-        return api.post("/auth/admin/login",data)
+    adminLogin: (data: { email: string, password: string }) => {
+        return api.post("/auth/admin/login", data)
     },
     //Fetch users list
-    getUsers:()=>{
+    getUsers: () => {
         return api.get("/auth/admin/get-users")
     },
-    
+    // block user
+    blockUser: (id: string) => {
+        return api.patch(`/auth/admin/block-user/${id}`);
+    },
+
+
 
     // Worker Api's
 
     //worker Login
-    workerLogin:(data:{email:string, password:string}) => {
-        return api.post("/auth/worker-login",data)
+    workerLogin: (data: { email: string, password: string }) => {
+        return api.post("/auth/worker-login", data)
     },
+
 }
 
 

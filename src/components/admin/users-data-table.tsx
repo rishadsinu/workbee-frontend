@@ -13,6 +13,13 @@ import type {
 } from "@tanstack/react-table";
 
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+import {
   Table,
   TableBody,
   TableCell,
@@ -27,9 +34,14 @@ import { AuthService } from "@/services/auth-service";
 
 // Define User type
 interface User {
+  id: string;
   name: string;
   email: string;
   role: string;
+  isBlocked: boolean;
+  countofpost?: number;
+  phone?: string;
+  numberOfComplaints?: string;
 }
 
 // Toolbar props
@@ -90,11 +102,14 @@ const Users = () => {
     pageSize: 10,
   });
   const [pageCount, setPageCount] = useState(1);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // fetch all users
   const getUsers = async () => {
     try {
       setIsLoading(true);
-      const res = await AuthService.getUsers()
+      const res = await AuthService.getUsers();
       let fetchedUsers: User[] = res.data.data.users;
 
       if (searchValue) {
@@ -118,6 +133,23 @@ const Users = () => {
     }
   };
 
+  // block user
+  const blockUser = async () => {
+    if (!selectedUser) return;
+
+    try {
+      const res = await AuthService.blockUser(selectedUser.id);
+
+      if (res.data.success) {
+        alert(selectedUser.isBlocked ? "User Unblocked" : "User Blocked");
+        setIsModalOpen(false);
+        getUsers();
+      }
+    } catch (error: any) {
+      alert("Error occurred while blocking user");
+    }
+  };
+
   useEffect(() => {
     getUsers();
   }, [searchValue, pagination.pageIndex, pagination.pageSize]);
@@ -126,18 +158,58 @@ const Users = () => {
     {
       accessorKey: "name",
       header: "Name",
-      cell: ({ row }) => <div>{row.original.name}</div>,
     },
     {
       accessorKey: "email",
       header: "Email",
-      cell: ({ row }) => <div>{row.original.email}</div>,
     },
     {
       accessorKey: "role",
       header: "Role",
-      cell: ({ row }) => <div>{row.original.role}</div>,
-    }
+    },
+    {
+      id: "status",
+      header: "Status",
+      cell: ({ row }) => {
+        const user = row.original;
+        return (
+          <span
+            className={`
+              inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
+              ${
+                user.isBlocked
+                  ? "bg-red-100/80 text-red-700 border border-red-200"
+                  : "bg-green-100/80 text-green-700 border border-green-200"
+              }
+            `}
+          >
+            <span
+              className={`
+                w-1.5 h-1.5 rounded-full
+                ${user.isBlocked ? "bg-red-500" : "bg-green-500"}
+              `}
+            />
+            {user.isBlocked ? "Blocked" : "Active"}
+          </span>
+        );
+      },
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            setSelectedUser(row.original);
+            setIsModalOpen(true);
+          }}
+        >
+          View
+        </Button>
+      ),
+    },
   ];
 
   const table = useReactTable<User>({
@@ -157,14 +229,121 @@ const Users = () => {
 
   return (
     <div className="space-y-4">
-      {/* <h1 className="text-xl font-bold mb-4">User Management</h1> */}
-
       <UserDataTableToolbar
         table={table}
         searchValue={searchValue}
         onSearchChange={setSearchValue}
         isLoading={isLoading}
       />
+
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-md rounded-xl p-0 overflow-hidden">
+          {/* Header */}
+          <div className="px-6 py-4 border-b bg-gray-50">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-semibold">
+                User Details
+              </DialogTitle>
+            </DialogHeader>
+          </div>
+
+          {/* Body */}
+          <div className="px-6 py-5 space-y-6">
+            {selectedUser && (
+              <div className="space-y-4 text-sm">
+                {/* Basic Info */}
+                <div className="space-y-2">
+                  <p>
+                    <span className="font-medium text-gray-700">Name : </span>{" "}
+                    {selectedUser.name}
+                  </p>
+                  <p>
+                    <span className="font-medium text-gray-700">Email : </span>{" "}
+                    {selectedUser.email}
+                  </p>
+                  <p>
+                    <span className="font-medium text-gray-700">Role : </span>{" "}
+                    {selectedUser.role}
+                  </p>
+
+                  {/* Status with Badge */}
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-700">Status :</span>
+                    <div className="flex items-center gap-2">
+                      {/* Status Badge */}
+                      <span
+                        className={`
+                          inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium
+                          ${
+                            selectedUser.isBlocked
+                              ? "bg-red-100/80 text-red-700 border border-red-200"
+                              : "bg-green-100/80 text-green-700 border border-green-200"
+                          }
+                        `}
+                      >
+                        {/* Indicator Dot */}
+                        <span
+                          className={`
+                            w-2 h-2 rounded-full
+                            ${
+                              selectedUser.isBlocked
+                                ? "bg-red-500"
+                                : "bg-green-500"
+                            }
+                          `}
+                        />
+                        {selectedUser.isBlocked ? "Blocked" : "Active"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <p>
+                    <span className="font-medium text-gray-700">
+                      Phone Number :{" "}
+                    </span>
+                    {selectedUser.phone ?? "Not available"}
+                  </p>
+                </div>
+
+                {/* Divider */}
+                <div className="border-t pt-4" />
+
+                {/* Additional Info */}
+                <div className="space-y-2">
+                  <p>
+                    <span className="font-medium text-gray-700">
+                      Number of Post Work :{" "}
+                    </span>
+                    {selectedUser.countofpost ?? "Not available"}
+                  </p>
+
+                  <p>
+                    <span className="font-medium text-gray-700">
+                      Complaint Against this User :{" "}
+                    </span>
+                    {selectedUser.numberOfComplaints ?? "Not available"}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="px-6 py-4 border-t bg-gray-50 flex justify-end">
+            <Button
+              variant="outline"
+              onClick={blockUser}
+              className={
+                selectedUser?.isBlocked
+                  ? "hover:bg-green-50 hover:text-green-700 hover:border-green-300"
+                  : "hover:bg-red-50 hover:text-red-700 hover:border-red-300"
+              }
+            >
+              {selectedUser?.isBlocked ? "Unblock User" : "Block User"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <div className="rounded-md border">
         <Table>
@@ -188,7 +367,10 @@ const Users = () => {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={columns.length} className="text-center h-24">
+                <TableCell
+                  colSpan={columns.length}
+                  className="text-center h-24"
+                >
                   Loading...
                 </TableCell>
               </TableRow>
@@ -197,14 +379,20 @@ const Users = () => {
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="text-center h-24">
+                <TableCell
+                  colSpan={columns.length}
+                  className="text-center h-24"
+                >
                   No users found.
                 </TableCell>
               </TableRow>
