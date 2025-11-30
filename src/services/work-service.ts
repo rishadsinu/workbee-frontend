@@ -1,30 +1,36 @@
 import { api } from "./axios-instance";
 
 export const WorkService = {
-    getAppliers:() => {
+    getAppliers: () => {
         return api.get("/work/get-new-appliers");
-    } ,
+    },
 
-    approveWorkerApplication:(data:{email:string}) => {
-        return api.post("/work/approve-worker",data)
-    }, 
+   
+    approveWorkerApplication: (data: { workerId: string|undefined, status: "approved" | "rejected" }) => {
+        return api.post("/work/approve-worker", data)
+    },
 
-    getAllWorkers:() => {
+
+    getAllWorkers: () => {
         return api.get("/work/get-workers")
     },
 
-    getAllWorks:()=>{
+    getAllWorks: () => {
         return api.get("/work/get-all-works")
     },
 
-    postWork: (formData:FormData) => {
-        return api.post("/work/post-work",formData, {
-            headers:{"Content-Type":"multipart/form-data"}
+    postWork: (formData: FormData) => {
+        return api.post("/work/post-work", formData, {
+            headers: { "Content-Type": "multipart/form-data" }
         })
     },
 
-    applyForWorker:(workerData:any) => {
-        return api.post("work/apply-worker",workerData)
-    }
+    applyForWorker: (workerData: any) => {
+        return api.post("/work/apply-worker", workerData)
+    },
+
+    blockWorker: (id: string) => {
+        return api.patch(`/work/block-worker/${id}`);
+    },
 }
 

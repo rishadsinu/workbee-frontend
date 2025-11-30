@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react"
 import { Eye, X, Search, BookmarkIcon } from "lucide-react"
 import { WorkService } from "@/services/work-service"
-import { Switch } from "../ui/switch"
 import { Toggle } from "../ui/toggle"
 
 // Types
 interface Applier {
-  _id: string
+  _id?: string
+  id?: string
   name: string
   email: string
   phone: string
@@ -18,6 +18,7 @@ interface Applier {
     honest: boolean
     termsAccepted: boolean
   }
+  status: string;
   createdAt?: Date
 }
 
@@ -94,7 +95,7 @@ const Badge = ({
   const variants = {
     default: "bg-gray-100 text-gray-700",
     success: "bg-green-100 text-green-700",
-    secondary: "bg-blue-100 text-whi-700",
+    secondary: "bg-blue-100 text-blue-700",
   }
   return (
     <span
@@ -105,53 +106,53 @@ const Badge = ({
   )
 }
 
-const Select = ({
-  value,
-  onChange,
-  children,
-  className = "",
-}: {
-  value: string
-  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void
-  children: React.ReactNode
-  className?: string
-}) => {
-  return (
-    <select
-      value={value}
-      onChange={onChange}
-      className={`flex h-10 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-500 ${className}`}
-    >
-      {children}
-    </select>
-  )
-}
-
 // Modal Component
 const Modal = ({
   isOpen,
   onClose,
   applier,
+  onRefresh,
 }: {
   isOpen: boolean
   onClose: () => void
   applier: Applier | null
+  onRefresh: () => void
 }) => {
   if (!isOpen || !applier) return null
 
-
-
-const approveWorker = async () => {
-  try {
-    const res = await WorkService.approveWorkerApplication({email:applier.email})
-    if (res.data.success) {
-      window.location.reload()
-      alert('success fully approved worker')
+  const approveWorker = async () => {
+    try {
+      const res = await WorkService.approveWorkerApplication({
+        workerId: applier.id || applier._id,
+        status: "approved"
+      })
+      if (res.data.success) {
+        alert('Successfully approved worker')
+        onClose()
+        onRefresh()
+      }
+    } catch (error) {
+      console.error('Error approving worker:', error)
+      alert('Error approving worker')
     }
-  } catch (error) {
-    alert(error)
   }
-}
+
+  const rejectWorker = async () => {
+    try {
+      const res = await WorkService.approveWorkerApplication({
+        workerId: applier.id || applier._id,
+        status: "rejected"
+      })
+      if (res.data.success) {
+        alert('Worker application rejected')
+        onClose()
+        onRefresh()
+      }
+    } catch (error) {
+      console.error('Error rejecting worker:', error)
+      alert('Error rejecting worker')
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -160,7 +161,7 @@ const approveWorker = async () => {
         <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between z-10">
           <div>
             <h2 className="text-xl font-semibold text-gray-900">{applier.name}</h2>
-            <p className="text-sm text-gray-500 mt-1">new worker application</p>
+            <p className="text-sm text-gray-500 mt-1">New worker application</p>
           </div>
           <button
             onClick={onClose}
@@ -184,6 +185,7 @@ const approveWorker = async () => {
               <label className="text-sm font-medium text-gray-700">Phone</label>
               <p className="mt-1 text-sm text-gray-900">{applier.phone}</p>
             </div>
+
             <div>
               <label className="text-sm font-medium text-gray-700">Location</label>
               <p className="mt-1 text-sm text-gray-900">{applier.location}</p>
@@ -225,7 +227,7 @@ const approveWorker = async () => {
               {Object.entries(applier.confirmations).map(([key, value]) => (
                 <div key={key} className="flex items-center gap-2">
                   <div
-                    className={`w-5 h-5 rounded flex items-center justify-center ${value ? "bg-black" : "bg-black-300"
+                    className={`w-5 h-5 rounded flex items-center justify-center ${value ? "bg-black" : "bg-gray-300"
                       }`}
                   >
                     {value && (
@@ -247,31 +249,33 @@ const approveWorker = async () => {
               ))}
             </div>
           </div>
-          <div className="border-t pt-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h6 className="text-sm font-medium text-gray-800">
-                  Accept and give permission
-                </h6>
-                <p className="text-xs text-gray-500">
-                  Enable this to approve the worker application
-                </p>
-              </div>
-              <Button 
-                variant="outline"
-                onClick={approveWorker}  
-              >
-                Approve
-              </Button>
-            </div>
+        </div>
+
+        <div className="border-t px-6 py-4 flex items-center justify-between">
+          {/* Left side text */}
+          <div>
+            <h6 className="text-sm font-medium text-gray-800">
+              Accept and give permission
+            </h6>
+            <p className="text-xs text-gray-500">
+              Enable this to approve the worker application
+            </p>
           </div>
 
+          {/* Buttons */}
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={approveWorker}>
+              Approve
+            </Button>
+
+            <Button variant="outline" onClick={rejectWorker}>
+              Reject
+            </Button>
+          </div>
         </div>
 
 
-        <div className="border-t px-6 py-4 flex justify-end gap-3">
 
-        </div>
 
       </div>
     </div>
@@ -286,7 +290,7 @@ export default function NewAppliers() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage, setItemsPerPage] = useState(10)
+  const [itemsPerPage] = useState(10)
 
   const getNewAppliers = async () => {
     try {
@@ -319,7 +323,6 @@ export default function NewAppliers() {
   const indexOfLastItem = currentPage * itemsPerPage
   const indexOfFirstItem = indexOfLastItem - itemsPerPage
   const currentItems = filteredAppliers.slice(indexOfFirstItem, indexOfLastItem)
-  const totalPages = Math.ceil(filteredAppliers.length / itemsPerPage)
 
   const handleViewDetails = (applier: Applier) => {
     setSelectedApplier(applier)
@@ -340,8 +343,6 @@ export default function NewAppliers() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto">
-
-
         <div className="bg-white rounded-lg shadow">
           <div className="p-4 border-b flex items-center justify-between flex-wrap gap-4">
             <div className="relative flex-1 max-w-sm">
@@ -353,11 +354,9 @@ export default function NewAppliers() {
                 className="pl-9"
               />
             </div>
-
           </div>
 
           <div className="overflow-x-auto">
-
             <table className="w-full">
               <thead className="bg-gray-50 border-b">
                 <tr>
@@ -382,13 +381,12 @@ export default function NewAppliers() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {currentItems.length > 0 ? (
                   currentItems.map((applier) => (
-                    <tr key={applier._id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={applier.id || applier._id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
                         {applier.name}
                       </td>
                       <td className="px-6 py-4 text-gray-600">{applier.email}</td>
                       <td className="px-6 py-4 text-gray-600">{applier.phone}</td>
-
                       <td className="px-6 py-4 text-center">
                         <Toggle
                           aria-label="Toggle bookmark"
@@ -397,10 +395,13 @@ export default function NewAppliers() {
                           className="data-[state=on]:bg-transparent data-[state=on]:*:[svg]:fill-blue-500 data-[state=on]:*:[svg]:stroke-blue-500"
                         >
                           <BookmarkIcon />
-                          Approve
+                          {applier.status === "approved"
+                            ? "Approved"
+                            : applier.status === "rejected"
+                              ? "Rejected"
+                              : "Pending"}
                         </Toggle>
                       </td>
-
                       <td className="px-6 py-4 text-center">
                         <Button
                           variant="outline"
@@ -416,15 +417,13 @@ export default function NewAppliers() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
                       No appliers found.
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
-
-
           </div>
         </div>
       </div>
@@ -433,6 +432,7 @@ export default function NewAppliers() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         applier={selectedApplier}
+        onRefresh={getNewAppliers}
       />
     </div>
   )

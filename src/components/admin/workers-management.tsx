@@ -1,17 +1,21 @@
+
 import { useState, useEffect } from "react"
 import { Eye, X, Search, BookmarkIcon } from "lucide-react"
 import { WorkService } from "@/services/work-service"
+import { AuthService } from "@/services/auth-service"
 import { Toggle } from "../ui/toggle"
 
 // Types
 interface Applier {
     _id: string
+    id?: string
     name: string
     email: string
     phone: string
     location: string
     workType: string
     preferredWorks: string[]
+    isBlocked?: boolean
     confirmations: {
         reliable: boolean
         honest: boolean
@@ -93,7 +97,7 @@ const Badge = ({
     const variants = {
         default: "bg-gray-100 text-gray-700",
         success: "bg-green-100 text-green-700",
-        secondary: "bg-blue-100 text-whi-700",
+        secondary: "bg-blue-100 text-blue-700",
     }
     return (
         <span
@@ -104,37 +108,17 @@ const Badge = ({
     )
 }
 
-const Select = ({
-    value,
-    onChange,
-    children,
-    className = "",
-}: {
-    value: string
-    onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void
-    children: React.ReactNode
-    className?: string
-}) => {
-    return (
-        <select
-            value={value}
-            onChange={onChange}
-            className={`flex h-10 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-500 ${className}`}
-        >
-            {children}
-        </select>
-    )
-}
-
 // Modal Component
 const Modal = ({
     isOpen,
     onClose,
     applier,
+    onBlockUnblock,
 }: {
     isOpen: boolean
     onClose: () => void
     applier: Applier | null
+    onBlockUnblock: (applierId: string) => void
 }) => {
     if (!isOpen || !applier) return null
 
@@ -142,16 +126,18 @@ const Modal = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div className="absolute inset-0 bg-black/50" onClick={onClose} />
             <div className="relative bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto m-4">
+                {/* Header */}
                 <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between z-10">
                     <div>
                         <h2 className="text-xl font-semibold text-gray-900">{applier.name}</h2>
-                        <p className="text-sm text-gray-500 mt-1">Approved Worker</p>
+                        <p className="text-sm text-gray-500 mt-1">Worker Details</p>
                     </div>
                     <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
+                {/* Body */}
                 <div className="px-6 py-4 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -176,6 +162,32 @@ const Modal = ({
                                 <Badge variant="secondary">{applier.workType}</Badge>
                             </p>
                         </div>
+
+                        {/* Status with Badge */}
+                        <div>
+                            <label className="text-sm font-medium text-gray-700">Status</label>
+                            <div className="mt-1">
+                                <span
+                                    className={`
+                                        inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium
+                                        ${
+                                            applier.isBlocked
+                                                ? "bg-red-100/80 text-red-700 border border-red-200"
+                                                : "bg-green-100/80 text-green-700 border border-green-200"
+                                        }
+                                    `}
+                                >
+                                    <span
+                                        className={`
+                                            w-2 h-2 rounded-full
+                                            ${applier.isBlocked ? "bg-red-500" : "bg-green-500"}
+                                        `}
+                                    />
+                                    {applier.isBlocked ? "Blocked" : "Active"}
+                                </span>
+                            </div>
+                        </div>
+
                         <div>
                             <label className="text-sm font-medium text-gray-700">Applied On</label>
                             <p className="mt-1 text-sm text-gray-900">
@@ -199,11 +211,25 @@ const Modal = ({
                         </div>
                     </div>
                 </div>
+
+                {/* Footer */}
+                <div className="px-6 py-4 border-t bg-gray-50 flex justify-end">
+                    <Button
+                        variant="outline"
+                        onClick={() => onBlockUnblock(applier._id || applier.id || "")}
+                        className={
+                            applier.isBlocked
+                                ? "hover:bg-green-50 hover:text-green-700 hover:border-green-300"
+                                : "hover:bg-red-50 hover:text-red-700 hover:border-red-300"
+                        }
+                    >
+                        {applier.isBlocked ? "Unblock Worker" : "Block Worker"}
+                    </Button>
+                </div>
             </div>
         </div>
     )
 }
-
 
 // Main Component
 export default function WorkersManagementComponent() {
@@ -213,7 +239,7 @@ export default function WorkersManagementComponent() {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [searchTerm, setSearchTerm] = useState("")
     const [currentPage, setCurrentPage] = useState(1)
-    const [itemsPerPage, setItemsPerPage] = useState(10)
+    const [itemsPerPage] = useState(10)
 
     const getAllWorkers = async () => {
         try {
@@ -228,6 +254,26 @@ export default function WorkersManagementComponent() {
             alert("Error while fetching all workers")
         } finally {
             setLoading(false)
+        }
+    }
+
+    const handleBlockUnblock = async (workerId: string) => {
+        if (!workerId) {
+            alert("Worker ID is missing")
+            return
+        }
+
+        try {
+            const res = await WorkService.blockWorker(workerId)
+
+            if (res.data.success) {
+                alert(selectedApplier?.isBlocked ? "Worker Unblocked" : "Worker Blocked")
+                setIsModalOpen(false)
+                getAllWorkers()
+            }
+        } catch (error: any) {
+            console.error("Error blocking/unblocking worker:", error)
+            alert("Error occurred while updating worker status")
         }
     }
 
@@ -257,7 +303,7 @@ export default function WorkersManagementComponent() {
             <div className="flex items-center justify-center min-h-screen bg-gray-50">
                 <div className="text-center">
                     <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading appliers...</p>
+                    <p className="text-gray-600">Loading workers...</p>
                 </div>
             </div>
         )
@@ -266,8 +312,6 @@ export default function WorkersManagementComponent() {
     return (
         <div className="min-h-screen bg-gray-50">
             <div className="max-w-7xl mx-auto">
-
-
                 <div className="bg-white rounded-lg shadow">
                     <div className="p-4 border-b flex items-center justify-between flex-wrap gap-4">
                         <div className="relative flex-1 max-w-sm">
@@ -279,11 +323,9 @@ export default function WorkersManagementComponent() {
                                 className="pl-9"
                             />
                         </div>
-
                     </div>
 
                     <div className="overflow-x-auto">
-
                         <table className="w-full">
                             <thead className="bg-gray-50 border-b">
                                 <tr>
@@ -293,8 +335,9 @@ export default function WorkersManagementComponent() {
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                                         Email
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                                        Phone
+                                   
+                                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
+                                        Status
                                     </th>
                                     <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                                         Approve
@@ -307,13 +350,33 @@ export default function WorkersManagementComponent() {
 
                             <tbody className="bg-white divide-y divide-gray-200">
                                 {currentItems.length > 0 ? (
-                                    currentItems.map((workers) => (
-                                        <tr key={workers._id} className="hover:bg-gray-50 transition-colors">
+                                    currentItems.map((worker) => (
+                                        <tr key={worker._id} className="hover:bg-gray-50 transition-colors">
                                             <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
-                                                {workers.name}
+                                                {worker.name}
                                             </td>
-                                            <td className="px-6 py-4 text-gray-600">{workers.email}</td>
-                                            <td className="px-6 py-4 text-gray-600">{workers.phone}</td>
+                                            <td className="px-6 py-4 text-gray-600">{worker.email}</td>
+
+                                            <td className="px-6 py-4 text-center">
+                                                <span
+                                                    className={`
+                                                        inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
+                                                        ${
+                                                            worker.isBlocked
+                                                                ? "bg-red-100/80 text-red-700 border border-red-200"
+                                                                : "bg-green-100/80 text-green-700 border border-green-200"
+                                                        }
+                                                    `}
+                                                >
+                                                    <span
+                                                        className={`
+                                                            w-1.5 h-1.5 rounded-full
+                                                            ${worker.isBlocked ? "bg-red-500" : "bg-green-500"}
+                                                        `}
+                                                    />
+                                                    {worker.isBlocked ? "Blocked" : "Active"}
+                                                </span>
+                                            </td>
 
                                             <td className="px-6 py-4 text-center">
                                                 <Toggle
@@ -331,7 +394,7 @@ export default function WorkersManagementComponent() {
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
-                                                    onClick={() => handleViewDetails(workers)}
+                                                    onClick={() => handleViewDetails(worker)}
                                                     className="inline-flex items-center gap-1"
                                                 >
                                                     <Eye className="w-4 h-4" />
@@ -342,15 +405,13 @@ export default function WorkersManagementComponent() {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                                            No workerss found.
+                                        <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                                            No workers found.
                                         </td>
                                     </tr>
                                 )}
                             </tbody>
                         </table>
-
-
                     </div>
                 </div>
             </div>
@@ -359,8 +420,8 @@ export default function WorkersManagementComponent() {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 applier={selectedApplier}
+                onBlockUnblock={handleBlockUnblock}
             />
-
         </div>
     )
 }
