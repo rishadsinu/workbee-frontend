@@ -154,18 +154,6 @@ const getStatusVariant = (status: string): "default" | "success" | "warning" | "
   }
 }
 
-// // const 
-// const getWorkersCount = () => {
-//   try {
-//     let count = axios.get("http://localhost:4000/auth/get-workerscount")
-//   } catch (error) {
-//     alert(error)
-//   }
-// }
-// useEffect(()=>{
-//   get
-// })
-
 // Helper function to format date
 const formatDate = (dateString?: string | Date) => {
   if (!dateString) return 'N/A'
@@ -203,9 +191,6 @@ const WorkDetailsModal = ({
           >
             <X className="w-5 h-5" />
           </button>
-        </div>
-        <div>
-          <h1>count of approved workes</h1>
         </div>
 
         <div className="px-6 py-4 space-y-6">
@@ -407,14 +392,10 @@ const WorkDetailsModal = ({
           </div>
         </div>
 
-        <div className="border-t px-6 py-4 flex justify-end gap-3">
-          <Button variant="outline" onClick={onClose}>
-            Close
-          </Button>
-
-          <Button variant="outline">
-            Chat with Client Now!
-          </Button>
+        <div className="sticky bottom-0 bg-white border-t px-6 py-4 flex justify-end gap-3 z-10">
+          <Button variant="outline" onClick={onClose}>Close</Button>
+          <Button variant="outline" onClick={onClose}>Make a Offer</Button>
+          <Button variant="outline">Chat with Client Now!</Button>
         </div>
 
       </div>
@@ -528,7 +509,7 @@ export default function WorkerWorksTable() {
                     Work Title
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Category
+                    Place
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Type
@@ -553,7 +534,7 @@ export default function WorkerWorksTable() {
                         <div className="font-medium text-gray-900">{work.workTitle}</div>
                         <div className="text-sm text-gray-500">{formatDate(work.date || work.startDate)}</div>
                       </td>
-                      <td className="px-6 py-4 text-gray-600">{work.workCategory}</td>
+                      <td className="px-6 py-4 text-gray-600">{work.currentLocation}</td>
                       <td className="px-6 py-4">
                         <Badge variant="info">
                           {work.workType === 'oneDay' ? 'One Day' : 'Multiple Days'}
@@ -613,8 +594,8 @@ export default function WorkerWorksTable() {
                       key={page}
                       onClick={() => setCurrentPage(page)}
                       className={`px-3 py-1 rounded text-sm ${currentPage === page
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-white text-gray-700 hover:bg-gray-50 border'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-white text-gray-700 hover:bg-gray-50 border'
                         }`}
                     >
                       {page}

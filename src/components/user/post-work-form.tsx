@@ -8,17 +8,27 @@ import {
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from "@/components/ui/dialog"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import TaskBookStepper, { Step } from "./task-book-stepper"
 import { WorkService } from "@/services/work-service"
+import AddressAutocomplete from "./AddressAutocomplete"
 
 export function PostWorkForm({ className, ...props }: React.ComponentProps<"div">) {
   const [form, setForm] = useState({
     userId: "",
     workTitle: "",
     workCategory: "",
-    workType: "", // "oneDay" or "multipleDay"
+    workType: "",
     date: "",
     startDate: "",
     endDate: "",
@@ -28,6 +38,12 @@ export function PostWorkForm({ className, ...props }: React.ComponentProps<"div"
     videoFile: null as File | null,
     duration: "",
     budget: "",
+
+    location: "", // Display address from map
+    
+    latitude: "", // Hidden field
+    longitude: "", // Hidden field
+
     currentLocation: "",
     manualAddress: "",
     landmark: "",
@@ -40,14 +56,16 @@ export function PostWorkForm({ className, ...props }: React.ComponentProps<"div"
     termsAccepted: false,
   })
 
+  const [isLocationDialogOpen, setIsLocationDialogOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const navigate = useNavigate()
+
   useEffect(() => {
     const userId = localStorage.getItem("userId")
     if (userId) {
       setForm(prev => ({ ...prev, userId }))
     }
   }, [])
-  const [isLoading, setIsLoading] = useState(false)
-  const navigate = useNavigate()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -59,6 +77,11 @@ export function PostWorkForm({ className, ...props }: React.ComponentProps<"div"
     if (files && files.length > 0) {
       setForm({ ...form, [name]: files[0] })
     }
+  }
+
+  // Helper function for AddressAutocomplete to update form
+  const setValue = (name: string, value: string) => {
+    setForm(prev => ({ ...prev, [name]: value }))
   }
 
   const handleSubmit = async () => {
@@ -81,16 +104,31 @@ export function PostWorkForm({ className, ...props }: React.ComponentProps<"div"
         return
       }
 
+      // ✅ ADD THIS VALIDATION
+      if (!form.latitude || !form.longitude) {
+        alert("Please select location from map")
+        return
+      }
+
       const formData = new FormData()
+
+      // Add all form fields except latitude, longitude, and location
       Object.entries(form).forEach(([key, value]) => {
+        if (key === 'latitude' || key === 'longitude' || key === 'location') {
+          // Skip these - we'll handle them separately
+          return
+        }
         if (value !== null && value !== "") {
           formData.append(key, value as any)
         }
       })
 
+      formData.append('latitude', form.latitude)
+      formData.append('longitude', form.longitude)
+
       const result = await WorkService.postWork(formData)
 
-      console.log("Response:", result.data);
+      console.log("Response:", result.data)
 
       if (result.data.success) {
         alert("Task successfully submitted! We'll connect you with workers soon.")
@@ -104,6 +142,8 @@ export function PostWorkForm({ className, ...props }: React.ComponentProps<"div"
       setIsLoading(false)
     }
   }
+
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <CardContent>
@@ -334,13 +374,40 @@ export function PostWorkForm({ className, ...props }: React.ComponentProps<"div"
               {/* ---------- LEFT SIDE ---------- */}
               <div className="flex flex-col gap-4">
                 <Field>
-                  <FieldLabel htmlFor="currentLocation">Current Location (Map)</FieldLabel>
+                  <FieldLabel>Location (select from map)</FieldLabel>
+                  <Dialog open={isLocationDialogOpen} onOpenChange={setIsLocationDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal"
+                      >
+                        {form.location || "Select a location"}
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-lg">
+                      <DialogHeader>
+                        <DialogTitle>Choose a Location</DialogTitle>
+                        <DialogDescription>
+                          Enter your address for the work site
+                        </DialogDescription>
+                      </DialogHeader>
+                      <AddressAutocomplete
+                        setValue={setValue}
+                        closeDialog={() => setIsLocationDialogOpen(false)}
+                      />
+                    </DialogContent>
+                  </Dialog>
+                </Field>
+
+                <Field>
+                  <FieldLabel htmlFor="place">Place</FieldLabel>
                   <Input
-                    id="currentLocation"
-                    name="currentLocation"
-                    value={form.currentLocation}
+                    id="place"
+                    name="place"
+                    value={form.place}
                     onChange={handleChange}
-                    placeholder="Google map link or coordinates"
+                    placeholder="E.g., Enter Your Place"
                   />
                 </Field>
 
@@ -426,4 +493,3 @@ export function PostWorkForm({ className, ...props }: React.ComponentProps<"div"
     </div>
   )
 }
-

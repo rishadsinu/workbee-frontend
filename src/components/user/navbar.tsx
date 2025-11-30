@@ -75,6 +75,34 @@ const Navbar = () => {
             </button>
           </li>
 
+          {/* <li>
+            <button
+              onClick={() => handleNavigation("/worker/worker-dashboard")}
+              className="hover:text-black hover:font-semibold transition"
+            >
+              {user?.role?.includes("worker")
+                ? "Worker Dashboard"
+                : "Apply to become a worker"}
+            </button>
+          </li> */}
+          <li>
+            <button
+              onClick={() => {
+                if (user?.role?.includes("worker")) {
+                  handleNavigation("/worker/worker-dashboard");
+                } else {
+                  handleNavigation("/worker/apply-worker");
+                }
+              }}
+              className="hover:text-black hover:font-semibold transition"
+            >
+              {user?.role?.includes("worker")
+                ? "Worker Dashboard"
+                : "Apply to become a worker"}
+            </button>
+          </li>
+
+
           <li>
             <button
               onClick={() => handleNavigation("/questions")}
@@ -84,14 +112,7 @@ const Navbar = () => {
             </button>
           </li>
 
-          <li>
-            <button
-              onClick={() => handleNavigation("/contact")}
-              className="hover:text-black hover:font-semibold transition"
-            >
-              Contact
-            </button>
-          </li>
+
         </ul>
 
         {/* Right Side */}

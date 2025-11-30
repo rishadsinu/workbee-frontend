@@ -274,9 +274,6 @@ const Modal = ({
           </div>
         </div>
 
-
-
-
       </div>
     </div>
   )
