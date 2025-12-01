@@ -15,17 +15,14 @@ export const WorkService = {
         return api.get("/work/get-workers")
     },
 
-    
-
-    // getAllWorks: () => {
-    //     return api.get("/work/get-all-works")
-    // },
-
     getAllWorks: (filters?: {
         search?: string;
         status?: string;
         page?: number;
         limit?: number;
+        latitude?: number;    
+        longitude?: number;   
+        maxDistance?: number; 
     }) => {
         const params = new URLSearchParams();
         
@@ -33,6 +30,10 @@ export const WorkService = {
         if (filters?.status && filters.status !== 'all') params.append('status', filters.status);
         if (filters?.page) params.append('page', filters.page.toString());
         if (filters?.limit) params.append('limit', filters.limit.toString());
+        
+        if (filters?.latitude !== undefined) params.append('latitude', filters.latitude.toString());
+        if (filters?.longitude !== undefined) params.append('longitude', filters.longitude.toString());
+        if (filters?.maxDistance !== undefined) params.append('maxDistance', filters.maxDistance.toString());
         
         return api.get(`/work/get-all-works?${params.toString()}`);
     },

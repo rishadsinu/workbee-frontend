@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Eye, X, Search, MapPin, Calendar, Clock, Filter, IndianRupee } from "lucide-react"
+import { Eye, X, Search, MapPin, Calendar, Clock, Filter, IndianRupee, LocateIcon } from "lucide-react"
 import { WorkService } from "@/services/work-service"
 import { useDebounce } from "@/hooks/useDebounce"
 import axios from "axios"
@@ -177,17 +177,20 @@ const Select = ({
   onChange,
   children,
   className = "",
+  disabled = false,
 }: {
   value: string
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void
   children: React.ReactNode
   className?: string
+  disabled?: boolean
 }) => {
   return (
     <select
       value={value}
       onChange={onChange}
-      className={`flex h-10 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-500 ${className}`}
+      disabled={disabled}
+      className={`flex h-10 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
     >
       {children}
     </select>
@@ -197,7 +200,7 @@ const Select = ({
 // Helper functions
 const getStatusVariant = (status: string): "default" | "success" | "warning" | "danger" | "info" => {
   switch (status) {
-    case 'pending': return 'warning'
+    case 'pending': return 'default'
     case 'assigned': return 'info'
     case 'in-progress': return 'default'
     case 'completed': return 'success'
@@ -509,9 +512,9 @@ export default function WorkerWorksTable() {
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.cos(lat1 * (Math.PI / 180)) *
-      Math.cos(lat2 * (Math.PI / 180)) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2)
+        Math.cos(lat2 * (Math.PI / 180)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2)
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
     return R * c
   }
@@ -538,12 +541,33 @@ export default function WorkerWorksTable() {
     try {
       setLoading(true)
 
-      const response = await WorkService.getAllWorks({
+      // Prepare filters
+      const filters: any = {
         search: debouncedSearchTerm,
         status: statusFilter,
         page: currentPage,
         limit: itemsPerPage
-      })
+      }
+
+      // Add geospatial filters if distance filter is active
+      if (distanceFilter !== "all" && userLocation) {
+        const distanceMap: Record<string, number> = {
+          "2km": 2,
+          "5km": 5,
+          "8km": 8,
+          "10km": 10,
+          "15km": 15,
+          "20km": 20,
+          "30km": 30,
+          "50km": 50,
+        }
+
+        filters.latitude = userLocation.lat
+        filters.longitude = userLocation.lng
+        filters.maxDistance = distanceMap[distanceFilter]
+      }
+
+      const response = await WorkService.getAllWorks(filters)
 
       if (response.data.success) {
         const worksData = response.data.data
@@ -598,41 +622,12 @@ export default function WorkerWorksTable() {
   // Fetch works when filters change
   useEffect(() => {
     fetchWorks()
-  }, [debouncedSearchTerm, statusFilter, currentPage])
+  }, [debouncedSearchTerm, statusFilter, currentPage, distanceFilter])
 
   // Reset to page 1 when search or status changes
   useEffect(() => {
     setCurrentPage(1)
-  }, [debouncedSearchTerm, statusFilter])
-
-  // Client-side distance filtering
-  const filteredByDistance = works.filter((work) => {
-    if (distanceFilter === "all" || !userLocation || !work.location?.coordinates) {
-      return true
-    }
-
-    const [workLng, workLat] = work.location.coordinates
-    const distance = calculateDistance(
-      userLocation.lat,
-      userLocation.lng,
-      workLat,
-      workLng
-    )
-
-    const distanceMap: Record<string, number> = {
-      "2km": 2,
-      "5km": 5,
-      "8km": 8,
-      "10km": 10,
-      "15km": 15,
-      "20km": 20,
-      "30km": 30,
-      "50km": 50,
-    }
-
-    const maxDistance = distanceMap[distanceFilter]
-    return distance <= maxDistance
-  })
+  }, [debouncedSearchTerm, statusFilter, distanceFilter])
 
   const handleViewDetails = (work: Work) => {
     setSelectedWork(work)
@@ -683,17 +678,17 @@ export default function WorkerWorksTable() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
+        {/* <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Available Works</h1>
           <p className="text-sm text-gray-600 mt-1">
             Browse and apply for works near you
             {userLocation && (
-              <span className="ml-2 text-black-600 font-medium">
-                 Your location detected
+              <span className="ml-2 flex mt-7 text-black font-medium">
+                <LocateIcon/>Your location detected
               </span>
             )}
           </p>
-        </div>
+        </div> */}
 
         <div className="bg-white rounded-lg shadow">
           <div className="p-4 border-b flex items-center justify-between flex-wrap gap-4">
@@ -713,7 +708,7 @@ export default function WorkerWorksTable() {
             </div>
 
             {/* Distance Filter */}
-            {/* <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <MapPin className="w-4 h-4 text-gray-400" />
               <Select
                 value={distanceFilter}
@@ -731,28 +726,7 @@ export default function WorkerWorksTable() {
                 <option value="30km">Within 30 km</option>
                 <option value="50km">Within 50 km</option>
               </Select>
-            </div> */}
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-gray-400" />
-
-              <select
-                value={distanceFilter}
-                onChange={(e) => setDistanceFilter(e.target.value)}
-                className="w-44 border rounded px-2 py-1"
-                disabled={!userLocation}
-              >
-                <option value="all">Filter Work in Km</option>
-                <option value="2km">Within 2 km</option>
-                <option value="5km">Within 5 km</option>
-                <option value="8km">Within 8 km</option>
-                <option value="10km">Within 10 km</option>
-                <option value="15km">Within 15 km</option>
-                <option value="20km">Within 20 km</option>
-                <option value="30km">Within 30 km</option>
-                <option value="50km">Within 50 km</option>
-              </select>
             </div>
-
 
             {/* Status Filter */}
             <div className="flex items-center gap-2">
@@ -806,8 +780,8 @@ export default function WorkerWorksTable() {
                   </thead>
 
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredByDistance.length > 0 ? (
-                      filteredByDistance.map((work) => {
+                    {works.length > 0 ? (
+                      works.map((work) => {
                         let distance: number | null = null
                         if (userLocation && work.location?.coordinates) {
                           const [workLng, workLat] = work.location.coordinates
@@ -839,7 +813,7 @@ export default function WorkerWorksTable() {
                             </td>
                             {userLocation && (
                               <td className="px-6 py-4">
-                                <span className="text-sm text-blue-600 font-medium">
+                                <span className="text-sm text-black font-medium">
                                   {distance !== null ? `${distance.toFixed(1)} km` : 'N/A'}
                                 </span>
                               </td>
@@ -907,10 +881,11 @@ export default function WorkerWorksTable() {
                             key={page}
                             onClick={() => setCurrentPage(page as number)}
                             disabled={loading}
-                            className={`px-3 py-1 rounded text-sm transition-colors ${currentPage === page
-                                ? 'bg-blue-600 text-white'
+                            className={`px-3 py-1 rounded text-sm transition-colors ${
+                              currentPage === page
+                                ? 'bg-gray-900 text-white'
                                 : 'bg-white text-gray-700 hover:bg-gray-50 border'
-                              } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                           >
                             {page}
                           </button>
@@ -941,11 +916,11 @@ export default function WorkerWorksTable() {
         distance={
           selectedWork && userLocation && selectedWork.location?.coordinates
             ? calculateDistance(
-              userLocation.lat,
-              userLocation.lng,
-              selectedWork.location.coordinates[1],
-              selectedWork.location.coordinates[0]
-            )
+                userLocation.lat,
+                userLocation.lng,
+                selectedWork.location.coordinates[1],
+                selectedWork.location.coordinates[0]
+              )
             : null
         }
       />
