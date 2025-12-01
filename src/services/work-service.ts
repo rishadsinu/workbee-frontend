@@ -15,8 +15,26 @@ export const WorkService = {
         return api.get("/work/get-workers")
     },
 
-    getAllWorks: () => {
-        return api.get("/work/get-all-works")
+    
+
+    // getAllWorks: () => {
+    //     return api.get("/work/get-all-works")
+    // },
+
+    getAllWorks: (filters?: {
+        search?: string;
+        status?: string;
+        page?: number;
+        limit?: number;
+    }) => {
+        const params = new URLSearchParams();
+        
+        if (filters?.search) params.append('search', filters.search);
+        if (filters?.status && filters.status !== 'all') params.append('status', filters.status);
+        if (filters?.page) params.append('page', filters.page.toString());
+        if (filters?.limit) params.append('limit', filters.limit.toString());
+        
+        return api.get(`/work/get-all-works?${params.toString()}`);
     },
 
     postWork: (formData: FormData) => {
