@@ -10,7 +10,7 @@ export const AuthHelper = {
     localStorage.setItem(USER_ID, user._id || user.id);
   },
 
-  // Getters
+  // Token methods
   getToken() {
     return localStorage.getItem(TOKEN);
   },
@@ -19,18 +19,37 @@ export const AuthHelper = {
     localStorage.setItem(TOKEN, token);
   },
 
+  // User methods
   getUser() {
     const stored = localStorage.getItem(USER);
     return stored ? JSON.parse(stored) : null;
   },
 
+  setUser(user: any) {
+    localStorage.setItem(USER, JSON.stringify(user));
+  },
 
+  // User ID methods
   getUserId() {
     return localStorage.getItem(USER_ID);
   },
 
   setUserId(id: string) {
     localStorage.setItem(USER_ID, id);
+  },
+
+  // Role check (based on user object)
+  getUserRole() {
+    const user = this.getUser();
+    return user?.role || null;
+  },
+
+  isAdmin() {
+    return this.getUserRole() === "admin";
+  },
+
+  isUser() {
+    return this.getUserRole() === "user";
   },
 
   // Clear all

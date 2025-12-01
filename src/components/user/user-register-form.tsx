@@ -19,7 +19,7 @@ import { useNavigate } from "react-router-dom"
 import BackButton from "../common/back-button"
 import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google"
 import { AuthService } from "@/services/auth-service"
-import { AuthHelper } from "@/utils/user-auth-helper"
+import { AuthHelper } from "@/utils/auth-helper"
 
 export function RegisterForm({
     className,
@@ -50,38 +50,43 @@ export function RegisterForm({
 
         setIsLoading(true)
         try {
-            const { confirmPassword, ...registrationData } = form
-            const res = await AuthService.register(registrationData)
+            const { confirmPassword, ...registrationData } = form;
+            const res = await AuthService.register(registrationData);
+
             if (res.data.success) {
-                // localStorage.setItem("userId", res.data.data.userId)
-                AuthHelper.setUserId(res.data.data.userId)
-                alert(res.data.message)
-                navigate("/otp")
+                AuthHelper.setUserId(res.data.data.userId);
+                alert(res.data.message);
+                navigate("/otp");
             } else {
-                alert(res.data.message || "Registration failed")
+                alert(res.data.message || "Registration failed");
             }
         } catch (err: any) {
-            console.error(err)
-            alert(err.response?.data?.message || "Registration failed")
+            console.error(err);
+            alert(err.response?.data?.message || "Registration failed");
         } finally {
-            setIsLoading(false)
+            setIsLoading(false);
         }
     }
 
     //google auth
     const handleGoogleAuthLogin = async (credentialResponse: any) => {
         try {
-            const res = await AuthService.googleAuthLogin({ credential: credentialResponse.credential })
+            const res = await AuthService.googleAuthLogin({
+                credential: credentialResponse.credential
+            });
 
             if (res.data.success) {
-                // localStorage.setItem("token", res.data.token);
-                // localStorage.setItem("user", JSON.stringify(res.data.data.user));
-                // localStorage.setItem("userId", res.data.data.user._id || res.data.data.user.id);
-
                 AuthHelper.setAuth(res.data.token, res.data.data.user);
-                
+
                 alert(res.data.message || "Google Auth Successful");
-                navigate("/");
+
+                // Navigate based on role
+                const user = AuthHelper.getUser();
+                if (user?.role === 'admin') {
+                    navigate('/admin/dashboard');
+                } else {
+                    navigate('/');
+                }
             } else {
                 alert(res.data.message || "Google Auth Failed");
             }

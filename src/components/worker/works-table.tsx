@@ -1,7 +1,46 @@
 import { useState, useEffect } from "react"
-import { Eye, X, Search, MapPin, Calendar, Clock, DollarSign, Filter } from "lucide-react"
+import { Eye, X, Search, MapPin, Calendar, Clock, DollarSign, Filter, IndianRupee, LocationEdit } from "lucide-react"
 import { WorkService } from "@/services/work-service"
 import axios from "axios"
+
+// find current location through geocode
+const getPlaceFromCoordinates = async (longitude: number, latitude: number): Promise<string> => {
+  try {
+    const response = await axios.get(
+      `https://api.opencagedata.com/geocode/v1/json`,
+      {
+        params: {
+          q: `${latitude},${longitude}`,
+          key: import.meta.env.VITE_OPENCAGE_API_KEY,
+          language: "en",
+        },
+      }
+    )
+
+    if (response.data.results && response.data.results.length > 0) {
+      const result = response.data.results[0]
+      const components = result.components
+
+      // Build a readable address
+      const city = components.city || components.town || components.village || components.county
+      const state = components.state
+      const country = components.country
+
+      if (city && state) {
+        return `${city}, ${state}`
+      } else if (city) {
+        return `${city}, ${country}`
+      }
+
+      return result.formatted?.split(',').slice(0, 2).join(',') || 'Location available'
+    }
+
+    return 'Unknown location'
+  } catch (error) {
+    console.error('Error fetching place name:', error)
+    return `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`
+  }
+}
 
 // Types
 interface Work {
@@ -19,6 +58,8 @@ interface Work {
   videoFile?: string
   duration?: string
   budget?: string
+  location: Location;
+  coordinates: [number, number];
   currentLocation?: string
   manualAddress?: string
   landmark?: string
@@ -32,6 +73,15 @@ interface Work {
   status: 'pending' | 'assigned' | 'in-progress' | 'completed' | 'cancelled'
   createdAt?: Date
   updatedAt?: Date
+}
+
+interface Location {
+  type: "Point";
+  coordinates: [number, number];
+}
+
+interface Worker {
+  location: Location;
 }
 
 // UI Components
@@ -169,10 +219,12 @@ const WorkDetailsModal = ({
   isOpen,
   onClose,
   work,
+  placeName
 }: {
   isOpen: boolean
   onClose: () => void
   work: Work | null
+  placeName?: string
 }) => {
   if (!isOpen || !work) return null
 
@@ -252,7 +304,7 @@ const WorkDetailsModal = ({
           {/* Budget & Payment */}
           <div className="border-t pt-4">
             <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-1">
-              <DollarSign className="w-4 h-4" />
+              <IndianRupee className="w-4 h-4" />
               Budget & Payment
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -278,6 +330,26 @@ const WorkDetailsModal = ({
               Location Details
             </h3>
             <div className="space-y-3">
+              {work.location?.coordinates && (
+                <div>
+                  <label className="text-sm text-gray-600">Map Location</label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {placeName || 'Loading location...'}
+                  </p>
+                  <a
+                    href={`https://www.google.com/maps?q=${work.location.coordinates[1]},${work.location.coordinates[0]}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-blue-600 hover:underline inline-flex items-center gap-1 mt-1"
+                  >
+                    <MapPin className="w-3 h-3" />
+                    View on Google Maps
+                  </a>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Coordinates: {work.location.coordinates[1].toFixed(6)}, {work.location.coordinates[0].toFixed(6)}
+                  </p>
+                </div>
+              )}
               {work.manualAddress && (
                 <div>
                   <label className="text-sm text-gray-600">Address</label>
@@ -293,21 +365,11 @@ const WorkDetailsModal = ({
                 )}
                 {work.place && (
                   <div>
-                    <label className="text-sm text-gray-600">Place</label>
+                    <label className="text-sm text-gray-600">Place Type</label>
                     <p className="mt-1 text-sm text-gray-900">{work.place}</p>
                   </div>
                 )}
               </div>
-              {work.currentLocation && (
-                <div>
-                  <label className="text-sm text-gray-600">Map Location</label>
-                  <p className="mt-1 text-sm text-blue-600 hover:underline">
-                    <a href={work.currentLocation} target="_blank" rel="noopener noreferrer">
-                      View on Map
-                    </a>
-                  </p>
-                </div>
-              )}
             </div>
           </div>
 
@@ -413,6 +475,8 @@ export default function WorkerWorksTable() {
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(10)
+  const [placeNames, setPlaceNames] = useState<Record<string, string>>({}) 
+  const [loadingPlaces, setLoadingPlaces] = useState(false)
 
   const fetchWorks = async () => {
     try {
@@ -421,7 +485,34 @@ export default function WorkerWorksTable() {
 
       if (response.data.success) {
         const worksData = response.data.data
-        setWorks(Array.isArray(worksData) ? worksData : [])
+        const worksArray = Array.isArray(worksData) ? worksData : []
+        setWorks(worksArray)
+
+        // Fetch place names for all works with coordinates
+        setLoadingPlaces(true)
+        const placePromises = worksArray.map(async (work: Work) => {
+          if (work.location?.coordinates && work.location.coordinates.length === 2) {
+            const [longitude, latitude] = work.location.coordinates
+            if (longitude && latitude) {
+              const placeName = await getPlaceFromCoordinates(longitude, latitude)
+              return { id: work.id!, placeName }
+            }
+          }
+          // Fallback to manual address or place
+          return {
+            id: work.id!,
+            placeName: work.place || work.manualAddress || work.currentLocation || 'Not specified'
+          }
+        })
+
+        const places = await Promise.all(placePromises)
+        const placeMap = places.reduce((acc, { id, placeName }) => {
+          if (id) acc[id] = placeName
+          return acc
+        }, {} as Record<string, string>)
+
+        setPlaceNames(placeMap)
+        setLoadingPlaces(false)
       }
     } catch (error) {
       console.error("Error fetching works:", error)
@@ -465,13 +556,7 @@ export default function WorkerWorksTable() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Available Works</h1>
-          <p className="text-sm text-gray-600 mt-1">Browse and apply for works near you</p>
-        </div>
-
         <div className="bg-white rounded-lg shadow">
           <div className="p-4 border-b flex items-center justify-between flex-wrap gap-4">
             <div className="relative flex-1 max-w-sm">
@@ -483,6 +568,25 @@ export default function WorkerWorksTable() {
                 className="pl-9"
               />
             </div>
+
+            {/* <div className="flex items-center gap-2">
+              <LocationEdit className="w-4 h-4 text-gray-400" />
+              <Select
+                value={statusFilter}
+                onChange={(e) => setWorkPlaceFilter(e.target.value)}
+                className="w-40"
+              >
+                <option value="all">Sort Works in km</option>
+                <option value="1km">2</option>
+                <option value="2km">5</option>
+                <option value="3km">8</option>
+                <option value="4km">10</option>
+                <option value="5km">15</option>
+                <option value="6km">20</option>
+                <option value="7km">30</option>
+                <option value="8km">50</option>
+              </Select>
+            </div> */}
 
             <div className="flex items-center gap-2">
               <Filter className="w-4 h-4 text-gray-400" />
@@ -509,11 +613,9 @@ export default function WorkerWorksTable() {
                     Work Title
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Place
+                    Location
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Type
-                  </th>
+                  
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Budget
                   </th>
@@ -534,12 +636,19 @@ export default function WorkerWorksTable() {
                         <div className="font-medium text-gray-900">{work.workTitle}</div>
                         <div className="text-sm text-gray-500">{formatDate(work.date || work.startDate)}</div>
                       </td>
-                      <td className="px-6 py-4 text-gray-600">{work.currentLocation}</td>
                       <td className="px-6 py-4">
-                        <Badge variant="info">
-                          {work.workType === 'oneDay' ? 'One Day' : 'Multiple Days'}
-                        </Badge>
+                        <div className="flex items-start gap-1.5">
+                          <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                          <span className="text-sm text-gray-600">
+                            {loadingPlaces ? (
+                              <span className="text-gray-400">Loading...</span>
+                            ) : (
+                              placeNames[work.id!] || 'Not specified'
+                            )}
+                          </span>
+                        </div>
                       </td>
+                      
                       <td className="px-6 py-4 text-gray-900 font-medium">
                         {work.budget ? `₹${work.budget}` : 'Not specified'}
                       </td>
@@ -613,14 +722,17 @@ export default function WorkerWorksTable() {
               </div>
             </div>
           )}
-        </div>
       </div>
 
       <WorkDetailsModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         work={selectedWork}
+        placeName={selectedWork?.id ? placeNames[selectedWork.id] : undefined}
       />
+
     </div>
   )
 }
+
+

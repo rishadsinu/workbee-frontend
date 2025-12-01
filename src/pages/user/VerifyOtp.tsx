@@ -1,10 +1,9 @@
 import FloatingIcons from "@/components/common/animatedIcons"
-import axios from "axios"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import Logo from "@/assets/logo.png"
 import { Button } from "@/components/ui/button"
-import { AuthHelper } from "@/utils/user-auth-helper"
+import { AuthHelper } from "@/utils/auth-helper"
 import { AuthService } from "@/services/auth-service"
 
 
@@ -12,26 +11,25 @@ const VerifyOtp = () => {
   const [otp, setOtp] = useState("")
 
   const navigate = useNavigate()
-  const userId = localStorage.getItem('userId')
 
   const handleVerify = async () => {
+    const userId = AuthHelper.getUserId(); 
+
     try {
-      // const res = await axios.post('http://localhost:4000/auth/verifyOtp', { userId, otp });
-      const res  = await AuthService.verifyOtp({userId, otp})
+      const res = await AuthService.verifyOtp({ userId, otp });
+
       if (res.data.success) {
-        AuthHelper.setToken(res.data.data.token)
+        AuthHelper.setToken(res.data.data.token);
         alert(res.data.message);
         navigate('/');
       } else {
         alert(res.data.message || 'OTP verification failed');
       }
-
     } catch (error: any) {
       console.error(error);
       alert(error.response?.data?.message || 'OTP verification failed');
     }
   };
-
 
   return (
     <div>

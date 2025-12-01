@@ -17,7 +17,7 @@ import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { AuthService } from "@/services/auth-service"
 import { Eye, EyeOff } from "lucide-react"
-import { AdminAuthHelper } from "@/utils/admin-auth-helper"
+import { AuthHelper } from "@/utils/auth-helper"
 
 export function LoginForm({
   className,
@@ -29,25 +29,43 @@ export function LoginForm({
   const [showPassword, setShowPassword] = useState(false)
   const navigate = useNavigate()
 
+  // const handleLogin = async (e: React.FormEvent) => {
+  //   e.preventDefault()
+  //   try {
+
+  //     const res = await AuthService.adminLogin({ email, password })
+
+  //     console.log('fontenddddd', res.data)
+  //     const token = res.data.data?.token || res.data.token
+  //     if (token) {
+  //       AuthHelper.setToken(token)
+  //       navigate('/admin/dashboard')
+  //     } else {
+
+  //       alert('login failed no token recieved')
+  //     }
+  //   } catch (err: any) {
+  //     console.log('frndend loginerrr', err)
+  //     alert(err.response?.data?.message || 'login failed')
+  //   }
+  // }
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
+      const res = await AuthService.adminLogin({ email, password });
 
-      const res = await AuthService.adminLogin({ email, password })
+      const token = res.data.data?.token || res.data.token;
+      const adminUser = res.data.data?.user || res.data.user;
 
-      console.log('fontenddddd', res.data)
-      const token = res.data.data?.token || res.data.token
-      if (token) {
-        // localStorage.setItem("adminToken", token)
-        AdminAuthHelper.setToken(token)
-        navigate('/admin/dashboard')
+      if (token && adminUser) {
+        AuthHelper.setAuth(token, adminUser);
+        navigate('/admin/dashboard');
       } else {
-
-        alert('login failed no token recieved')
+        alert('Login failed - no token received');
       }
     } catch (err: any) {
-      console.log('frndend loginerrr', err)
-      alert(err.response?.data?.message || 'login failed')
+      console.error('Admin login error:', err);
+      alert(err.response?.data?.message || 'Login failed');
     }
   }
 

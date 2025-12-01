@@ -170,17 +170,20 @@ const AddressAutocomplete = ({
         )}
       </Command>
 
-      <Button
-        variant="outline"
-        onClick={fetchLocationFromCoordinates}
-        className="w-full"
-      >
-        Use Current Location
-      </Button>
+      <div className="mt-20 flex flex-col gap-2">
+        <Button
+          variant="outline"
+          onClick={fetchLocationFromCoordinates}
+          className="w-full"
+        >
+          Use Current Location
+        </Button>
 
-      <Button variant="outline" onClick={closeDialog} className="w-full">
-        Close
-      </Button>
+        <Button variant="outline" onClick={closeDialog} className="w-full">
+          Close
+        </Button>
+      </div>
+
     </>
   );
 };

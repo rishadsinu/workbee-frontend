@@ -47,7 +47,6 @@ export function PostWorkForm({ className, ...props }: React.ComponentProps<"div"
     currentLocation: "",
     manualAddress: "",
     landmark: "",
-    place: "",
     contactNumber: "",
     beforeImage: null as File | null,
     petrolAllowance: "",
@@ -400,16 +399,16 @@ export function PostWorkForm({ className, ...props }: React.ComponentProps<"div"
                   </Dialog>
                 </Field>
 
-                <Field>
+                {/* <Field>
                   <FieldLabel htmlFor="place">Place</FieldLabel>
                   <Input
-                    id="place"
-                    name="place"
-                    value={form.place}
+                    id="currentLocation"
+                    name="currentLocation"
+                    value={form.currentLocation}
                     onChange={handleChange}
                     placeholder="E.g., Enter Your Place"
                   />
-                </Field>
+                </Field> */}
 
                 <Field>
                   <FieldLabel htmlFor="manualAddress">Address details</FieldLabel>

@@ -4,7 +4,7 @@ import { Sun } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AuthService } from "@/services/auth-service";
 import ProfileDropDownMenu from "./profile-drop-down";
-import { AuthHelper } from "@/utils/user-auth-helper";
+import { AuthHelper } from "@/utils/auth-helper";
 
 const Navbar = () => {
   const [user, setUser] = useState<any>(null);
@@ -25,7 +25,6 @@ const Navbar = () => {
         return;
       }
 
-      // No token -> not logged in
       if (!token) return;
 
       try {
@@ -50,11 +49,13 @@ const Navbar = () => {
     verifyUser();
   }, []);
 
+
   const handleLogout = () => {
     AuthHelper.clearAuth();
     setUser(null);
     navigate("/");
   };
+
 
   const handleNavigation = (path: string) => navigate(path);
 
