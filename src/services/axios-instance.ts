@@ -10,7 +10,7 @@ export const api = axios.create({
   },
 });
 
-// Request Interceptor
+// request Interceptor
 api.interceptors.request.use(
   (config) => {
     const token = AuthHelper.getToken();
@@ -26,7 +26,7 @@ api.interceptors.request.use(
   }
 );
 
-// Response Interceptor
+// response Interceptor 
 api.interceptors.response.use(
   (response) => {
     return response;
@@ -34,7 +34,6 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       AuthHelper.clearAuth();
-      window.location.href = "/login";
     }
     
     return Promise.reject(error);

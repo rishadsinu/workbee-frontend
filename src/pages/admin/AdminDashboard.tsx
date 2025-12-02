@@ -1,11 +1,12 @@
+import { AuthHelper } from "@/utils/auth-helper";
 import { useNavigate } from "react-router-dom";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
 
   const logout = () => {
-    localStorage.removeItem("adminToken");
-    navigate("/admin/login");
+    AuthHelper.clearAuth()
+    navigate("/admin");
   };
 
   return (

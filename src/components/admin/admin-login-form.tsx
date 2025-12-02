@@ -29,26 +29,6 @@ export function LoginForm({
   const [showPassword, setShowPassword] = useState(false)
   const navigate = useNavigate()
 
-  // const handleLogin = async (e: React.FormEvent) => {
-  //   e.preventDefault()
-  //   try {
-
-  //     const res = await AuthService.adminLogin({ email, password })
-
-  //     console.log('fontenddddd', res.data)
-  //     const token = res.data.data?.token || res.data.token
-  //     if (token) {
-  //       AuthHelper.setToken(token)
-  //       navigate('/admin/dashboard')
-  //     } else {
-
-  //       alert('login failed no token recieved')
-  //     }
-  //   } catch (err: any) {
-  //     console.log('frndend loginerrr', err)
-  //     alert(err.response?.data?.message || 'login failed')
-  //   }
-  // }
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     try {

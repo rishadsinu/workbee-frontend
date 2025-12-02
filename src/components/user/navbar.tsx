@@ -28,7 +28,6 @@ const Navbar = () => {
       if (!token) return;
 
       try {
-        // Backend verification
         const res = await AuthService.verifyUser();
 
         if (res.data.success) {
@@ -76,16 +75,7 @@ const Navbar = () => {
             </button>
           </li>
 
-          {/* <li>
-            <button
-              onClick={() => handleNavigation("/worker/worker-dashboard")}
-              className="hover:text-black hover:font-semibold transition"
-            >
-              {user?.role?.includes("worker")
-                ? "Worker Dashboard"
-                : "Apply to become a worker"}
-            </button>
-          </li> */}
+          
           <li>
             <button
               onClick={() => {

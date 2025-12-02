@@ -4,35 +4,36 @@ export const AuthService = {
 
     // User Api's
 
-    //Register
+    // register
     register: (data: { name: string, email: string, password: string }) => {
         return api.post("/auth/register", data)
     },
 
+    // verify otp
     verifyOtp: (data: { userId: string | null; otp: string }) => {
         return api.post("/auth/verifyOtp", data);
     },
 
-    //Login
+    // login
     login: (data: { email: string, password: string }) => {
         return api.post("/auth/login", data)
     },
 
-    //Forgot Password
+    // forgot Password
     forgotPassword: (data: { email: string }) => {
         return api.post("/auth/forget-password", data)
     },
 
-    //Reset Password
+    // reset Password
     resetPassword: (token: string, data: { password: string }) => {
         return api.post(`/auth/reset-password/${token}`, data);
     },
 
-    //Verify User
+    // verify User
     verifyUser: () => api.get("/auth/verify"),
 
 
-    //Google Auth
+    // google Auth
     googleAuthLogin: (data: { credential: string }) => {
         return api.post("/auth/google-login", data)
     },
@@ -44,7 +45,7 @@ export const AuthService = {
     adminLogin: (data: { email: string, password: string }) => {
         return api.post("/auth/admin/login", data)
     },
-    //Fetch users list
+    // Fetch users list
     getUsers: () => {
         return api.get("/auth/admin/get-users")
     },
