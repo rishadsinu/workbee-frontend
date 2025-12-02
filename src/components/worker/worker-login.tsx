@@ -18,6 +18,7 @@ import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import BackButton from "../common/back-button"
 import { AuthService } from "@/services/auth-service"
+import { AuthHelper } from "@/utils/auth-helper"
 
 export function WorkerLoginForm({
     className,
@@ -31,19 +32,35 @@ export function WorkerLoginForm({
 
 
     const handleLogin = async (e: React.FormEvent) => {
-        e.preventDefault()
+        e.preventDefault();
+
         try {
-            const data = {email,password}
-            const result = await AuthService.workerLogin(data)
+            const data = { email, password };
+            const result = await AuthService.workerLogin(data);
+
             if (result.data.success) {
-                alert("worker logined successfully")
-                navigate("/worker/worker-dashboard")
+                const { token, worker } = result.data.data;
+
+                if (token && worker) {
+                    if (worker.role !== "worker") {
+                        alert("Access denied. Worker privileges required.");
+                        return;
+                    }
+
+                    AuthHelper.setAuth(token, worker);
+                    alert(result.data.message || "Worker login successful");
+                    navigate("/worker/worker-dashboard");
+                } else {
+                    alert("Login failed - Invalid response");
+                }
+            } else {
+                alert(result.data.message || "Login failed");
             }
         } catch (err: any) {
-            console.log('frndend loginerrr', err)
-            alert(err.response?.data?.message || 'login failed')
+            console.error('Worker login error:', err);
+            alert(err.response?.data?.message || 'Login failed');
         }
-    }
+    };
 
     return (
         <div className={cn("flex flex-col gap-6", className)} {...props}>

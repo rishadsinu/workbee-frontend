@@ -1,4 +1,6 @@
 import { Routes, Route } from "react-router-dom";
+import { ProtectedRoute } from "@/components/common/ProtectedRoute";
+
 import ApplyWorker from "@/pages/worker/ApplyWorker";
 import WorkerLayout from "@/layout/WorkerLayout";
 import WorkerDashboard from "@/pages/worker/WorkerDashboard";
@@ -8,16 +10,24 @@ import Works from "@/pages/worker/Works";
 const WorkerRoutes = () => {
     return (
         <Routes>
+            {/* Public Routes */}
             <Route path="worker-login" element={<WorkerLogin/>} />
             <Route path="apply-worker" element={<ApplyWorker/>} />
 
-            <Route path="worker-dashboard" element={<WorkerLayout/>}>
+            {/* Protected Routes - Worker Only */}
+            <Route 
+                path="worker-dashboard" 
+                element={
+                    <ProtectedRoute allowedRoles={["worker"]}>
+                        <WorkerLayout/>
+                    </ProtectedRoute>
+                }
+            >
                 <Route index element={<WorkerDashboard/>} />
                 <Route path="works" element={<Works/>} />
-                
             </Route>
         </Routes>
     )
 }
 
-export default WorkerRoutes
+export default WorkerRoutes;
