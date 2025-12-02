@@ -43,10 +43,20 @@ export function LoginForm({
             const res = await AuthService.login(form);
 
             if (res.data.success) {
-                AuthHelper.setAuth(res.data.data.token, res.data.data.user);
+                const { token, user } = res.data.data;
 
-                alert(res.data.message || "Login Successful");
-                navigate("/");
+                if (token && user) {
+                    if (user.role !== "user") {
+                        alert("Access denied. Please use the correct login page.");
+                        return;
+                    }
+
+                    AuthHelper.setAuth(token, user);
+                    alert(res.data.message || "Login Successful");
+                    navigate("/");
+                } else {
+                    alert("Login failed - Invalid response");
+                }
             } else {
                 alert(res.data.message || "Login failed");
             }
@@ -58,7 +68,7 @@ export function LoginForm({
     };
 
 
-    //google auth
+    // google auth
     const handleGoogleAuthLogin = async (credentialResponse: any) => {
         try {
             const res = await AuthService.googleAuthLogin({
@@ -66,15 +76,21 @@ export function LoginForm({
             });
 
             if (res.data.success) {
-                AuthHelper.setAuth(res.data.token, res.data.data.user);
+                const { token, user } = res.data.data;
 
-                alert(res.data.message || "Google Auth Successful");
+                if (token && user) {
+                    AuthHelper.setAuth(token, user);
+                    alert(res.data.message || "Google Auth Successful");
 
-                const user = AuthHelper.getUser();
-                if (user?.role === 'admin') {
-                    navigate('/admin/dashboard');
+                    if (user.role === 'admin') {
+                        navigate('/admin/dashboard');
+                    } else if (user.role === 'worker') {
+                        navigate('/worker/worker-dashboard');
+                    } else {
+                        navigate('/');
+                    }
                 } else {
-                    navigate('/');
+                    alert("Google Auth failed - Invalid response");
                 }
             } else {
                 alert(res.data.message || "Google Auth Failed");
@@ -83,6 +99,7 @@ export function LoginForm({
             alert(err.response?.data?.message || "Google Login Failed");
         }
     };
+
 
 
     return (

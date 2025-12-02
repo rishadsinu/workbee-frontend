@@ -68,7 +68,7 @@ export function RegisterForm({
         }
     }
 
-    //google auth
+    // google auth
     const handleGoogleAuthLogin = async (credentialResponse: any) => {
         try {
             const res = await AuthService.googleAuthLogin({
@@ -76,16 +76,22 @@ export function RegisterForm({
             });
 
             if (res.data.success) {
-                AuthHelper.setAuth(res.data.token, res.data.data.user);
+                const { token, user } = res.data.data;
 
-                alert(res.data.message || "Google Auth Successful");
+                if (token && user) {
+                    AuthHelper.setAuth(token, user);
+                    alert(res.data.message || "Google Auth Successful");
 
-                // Navigate based on role
-                const user = AuthHelper.getUser();
-                if (user?.role === 'admin') {
-                    navigate('/admin/dashboard');
+                    // Navigate based on role
+                    if (user.role === 'admin') {
+                        navigate('/admin/dashboard');
+                    } else if (user.role === 'worker') {
+                        navigate('/worker/worker-dashboard');
+                    } else {
+                        navigate('/');
+                    }
                 } else {
-                    navigate('/');
+                    alert("Google Auth failed - Invalid response");
                 }
             } else {
                 alert(res.data.message || "Google Auth Failed");
@@ -94,6 +100,7 @@ export function RegisterForm({
             alert(err.response?.data?.message || "Google Login Failed");
         }
     };
+
 
     return (
         <div className={cn("flex flex-col gap-6", className)} {...props}>

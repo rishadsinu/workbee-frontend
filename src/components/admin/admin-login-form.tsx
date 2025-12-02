@@ -29,8 +29,10 @@ export function LoginForm({
   const [showPassword, setShowPassword] = useState(false)
   const navigate = useNavigate()
 
+  
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
+
     try {
       const res = await AuthService.adminLogin({ email, password });
 
@@ -38,7 +40,13 @@ export function LoginForm({
       const adminUser = res.data.data?.user || res.data.user;
 
       if (token && adminUser) {
+        if (adminUser.role !== "admin") {
+          alert("Access denied. Admin privileges required.");
+          return;
+        }
+
         AuthHelper.setAuth(token, adminUser);
+        alert("Admin login successful");
         navigate('/admin/dashboard');
       } else {
         alert('Login failed - no token received');
@@ -46,8 +54,9 @@ export function LoginForm({
     } catch (err: any) {
       console.error('Admin login error:', err);
       alert(err.response?.data?.message || 'Login failed');
-    }
-  }
+    } 
+}
+
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>

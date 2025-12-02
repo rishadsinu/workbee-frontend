@@ -1,4 +1,6 @@
 import { Route, Routes } from "react-router-dom";
+import { ProtectedRoute } from "@/components/common/ProtectedRoute";
+
 import Home from "@/pages/user/Home";
 import Login from "@/pages/user/Login";
 import Register from "@/pages/user/Register";
@@ -15,16 +17,32 @@ import MyWorks from "@/components/user/dashboard/MyWorks";
 const UserRoute = () => {
   return (
     <Routes>
+      {/*  Public Routes */}
       <Route path="/" element={<Home />} />
       <Route path="login" element={<Login />} />
       <Route path="register" element={<Register />} />
       <Route path="otp" element={<Otp />} />
       <Route path="forgot-password" element={<ForgotPassword />} />
       <Route path="reset-password/:token" element={<ResetPassword />} />
-      <Route path="task-booking" element={<TaskBookForm />} />
+      
+      {/* Protected Routes - User Only */}
+      <Route 
+        path="task-booking" 
+        element={
+          <ProtectedRoute allowedRoles={["user"]}>
+            <TaskBookForm />
+          </ProtectedRoute>
+        } 
+      />
 
-      {/* User Dashboard Routes */}
-      <Route path="/user-dashboard" element={<Dashboard />}>
+      <Route 
+        path="/user-dashboard" 
+        element={
+          <ProtectedRoute allowedRoles={["user"]}>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      >
         <Route index element={<DashboardHome />} />
         <Route path="works" element={<MyWorks />} />
       </Route>

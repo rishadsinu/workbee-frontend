@@ -1,4 +1,5 @@
 import { Route, Routes } from "react-router-dom";
+import { ProtectedRoute } from "@/components/common/ProtectedRoute";
 
 //Pages
 import AdminLogin from "@/pages/admin/AdminLogin";
@@ -11,17 +12,25 @@ import NewAppliersManagement from "@/pages/admin/NewAppliers";
 const AdminRoute = () => {
     return (
         <Routes>
+            {/* ✅ Public Route - No protection */}
             <Route path="/" element={<AdminLogin />} />
             
-            <Route path="dashboard" element={<AdminLayout/>} >
+            {/* ✅ Protected Routes - Admin Only */}
+            <Route 
+              path="dashboard" 
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminLayout/>
+                </ProtectedRoute>
+              } 
+            >
                 <Route index element={<AdminDashboard/>} />
                 <Route path="users" element={<Users/>} />
                 <Route path="workers" element={<WorkerManagement/>} />
                 <Route path="new-appliers" element={<NewAppliersManagement/>} />
             </Route>
-            
         </Routes>
     )
 }
 
-export default AdminRoute
+export default AdminRoute;

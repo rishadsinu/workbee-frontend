@@ -52,6 +52,10 @@ export const AuthHelper = {
     return this.getUserRole() === "user";
   },
 
+  isWorker() {
+    return this.getUserRole() === "worker";
+  },
+
   // Clear all
   clearAuth() {
     localStorage.removeItem(TOKEN);
