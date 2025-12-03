@@ -2,18 +2,18 @@ import { Button } from "@/components/ui/button";
 import FloatingIcons from "@/components/common/animatedIcons";
 import Navbar from "@/components/user/navbar";
 import { useNavigate } from "react-router-dom";
+import { AuthHelper } from "@/utils/auth-helper";
 
 export default function Login() {
   const navigate = useNavigate();
 
   const handleNavigate = () => {
-    const userId = localStorage.getItem("userId"); 
-    if (!userId) {
-      navigate("/login");
+    if (!AuthHelper.isLoggedIn) {
+      navigate('/')
     } else {
-      navigate("/task-booking");
+      navigate("/task-booking")
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">

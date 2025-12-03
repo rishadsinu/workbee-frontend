@@ -54,8 +54,6 @@ export const AuthService = {
         return api.patch(`/auth/admin/block-user/${id}`);
     },
 
-
-
     // Worker Api's
 
     //worker Login

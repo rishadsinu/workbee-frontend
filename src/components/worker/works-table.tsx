@@ -4,7 +4,7 @@ import { WorkService } from "@/services/work-service"
 import { useDebounce } from "@/hooks/useDebounce"
 import axios from "axios"
 
-// Find current location through geocode
+// find current location through geocode
 const getPlaceFromCoordinates = async (longitude: number, latitude: number): Promise<string> => {
   try {
     const response = await axios.get(
@@ -218,7 +218,7 @@ const formatDate = (dateString?: string | Date) => {
   })
 }
 
-// Modal Component
+// Modal Component work details modal
 const WorkDetailsModal = ({
   isOpen,
   onClose,
@@ -257,7 +257,7 @@ const WorkDetailsModal = ({
             <div>
               <label className="text-sm font-medium text-gray-700">Work Type</label>
               <p className="mt-1">
-                <Badge variant="info">
+                <Badge variant="default">
                   {work.workType === 'oneDay' ? 'One Day Work' : 'Multiple Day Work'}
                 </Badge>
               </p>
@@ -303,13 +303,13 @@ const WorkDetailsModal = ({
 
           {/* Description */}
           <div className="border-t pt-4">
-            <label className="text-sm font-medium text-gray-700">Description</label>
+            <label className="text-m font-medium text-black">Description</label>
             <p className="mt-2 text-sm text-gray-900 whitespace-pre-wrap">{work.description}</p>
           </div>
 
           {/* Budget & Payment */}
           <div className="border-t pt-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-1">
+            <h3 className="text-m font-medium text-black mb-3 flex items-center gap-1">
               <IndianRupee className="w-4 h-4" />
               Budget & Payment
             </h3>
@@ -331,7 +331,7 @@ const WorkDetailsModal = ({
 
           {/* Location */}
           <div className="border-t pt-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-1">
+            <h3 className="text-m font-medium text-black mb-3 flex items-center gap-1">
               <MapPin className="w-4 h-4" />
               Location Details
             </h3>
@@ -343,8 +343,8 @@ const WorkDetailsModal = ({
                     {placeName || 'Loading location...'}
                   </p>
                   {distance !== null && distance !== undefined && (
-                    <p className="mt-1 text-sm text-blue-600 font-medium">
-                      📍 {distance.toFixed(1)} km away from you
+                    <p className="mt-1 text-sm text-black-600 font-medium">
+                      Distance : {distance.toFixed(1)} km away from you
                     </p>
                   )}
                   <a
@@ -356,9 +356,7 @@ const WorkDetailsModal = ({
                     <MapPin className="w-3 h-3" />
                     View on Google Maps
                   </a>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Coordinates: {work.location.coordinates[1].toFixed(6)}, {work.location.coordinates[0].toFixed(6)}
-                  </p>
+
                 </div>
               )}
               {work.manualAddress && (
@@ -386,14 +384,14 @@ const WorkDetailsModal = ({
 
           {/* Contact */}
           <div className="border-t pt-4">
-            <label className="text-sm font-medium text-gray-700">Contact Number</label>
+            <label className="text-m font-medium text-black">Contact Number</label>
             <p className="mt-1 text-sm text-gray-900">{work.contactNumber}</p>
           </div>
 
           {/* Additional Requirements */}
           {(work.extraRequirements || work.anythingElse) && (
             <div className="border-t pt-4 space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Additional Information</h3>
+              <h3 className="text-m font-medium text-black">Additional Information</h3>
               {work.extraRequirements && (
                 <div>
                   <label className="text-sm text-gray-600">Extra Requirements</label>
@@ -452,9 +450,11 @@ const WorkDetailsModal = ({
             </div>
           )}
 
+
           {/* Timestamps */}
           <div className="border-t pt-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-gray-500">
+            <label className="text-m font-medium text-black">Post Details </label>
+            <div className="grid mt-4 mb-4 grid-cols-1 md:grid-cols-2 gap-4 text-xs text-black">
               <div>
                 <span className="font-medium">Posted:</span> {formatDate(work.createdAt)}
               </div>
@@ -463,6 +463,8 @@ const WorkDetailsModal = ({
               </div>
             </div>
           </div>
+
+
         </div>
 
         <div className="sticky bottom-0 bg-white border-t px-6 py-4 flex justify-end gap-3 z-10">
@@ -512,9 +514,9 @@ export default function WorkerWorksTable() {
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.cos(lat1 * (Math.PI / 180)) *
-        Math.cos(lat2 * (Math.PI / 180)) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2)
+      Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2)
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
     return R * c
   }
@@ -668,7 +670,7 @@ export default function WorkerWorksTable() {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-16 h-16 border-4 border-black-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Loading available works...</p>
         </div>
       </div>
@@ -678,6 +680,7 @@ export default function WorkerWorksTable() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
+
         {/* <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Available Works</h1>
           <p className="text-sm text-gray-600 mt-1">
@@ -702,7 +705,7 @@ export default function WorkerWorksTable() {
               />
               {loading && searchTerm && (
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                  <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-4 h-4 border-2 border-black-600 border-t-transparent rounded-full animate-spin"></div>
                 </div>
               )}
             </div>
@@ -748,7 +751,7 @@ export default function WorkerWorksTable() {
 
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
             </div>
           ) : (
             <>
@@ -881,11 +884,10 @@ export default function WorkerWorksTable() {
                             key={page}
                             onClick={() => setCurrentPage(page as number)}
                             disabled={loading}
-                            className={`px-3 py-1 rounded text-sm transition-colors ${
-                              currentPage === page
+                            className={`px-3 py-1 rounded text-sm transition-colors ${currentPage === page
                                 ? 'bg-gray-900 text-white'
                                 : 'bg-white text-gray-700 hover:bg-gray-50 border'
-                            } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                              } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                           >
                             {page}
                           </button>
@@ -916,11 +918,11 @@ export default function WorkerWorksTable() {
         distance={
           selectedWork && userLocation && selectedWork.location?.coordinates
             ? calculateDistance(
-                userLocation.lat,
-                userLocation.lng,
-                selectedWork.location.coordinates[1],
-                selectedWork.location.coordinates[0]
-              )
+              userLocation.lat,
+              userLocation.lng,
+              selectedWork.location.coordinates[1],
+              selectedWork.location.coordinates[0]
+            )
             : null
         }
       />

@@ -31,6 +31,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AuthService } from "@/services/auth-service";
+import axios from "axios";
 
 // Define User type
 interface User {
@@ -93,45 +94,63 @@ function UserDataTableToolbar({
 // Main Component
 const Users = () => {
   const [users, setUsers] = useState<User[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]); 
   const [isLoading, setIsLoading] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
-    pageSize: 10,
+    pageSize: 5,
   });
   const [pageCount, setPageCount] = useState(1);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // fetch all users
-  const getUsers = async () => {
+  // fetch all users (only once)
+  const fetchAllUsers = async () => {
     try {
       setIsLoading(true);
       const res = await AuthService.getUsers();
-      let fetchedUsers: User[] = res.data.data.users;
-
-      if (searchValue) {
-        fetchedUsers = fetchedUsers.filter(
-          (u) =>
-            u.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-            u.email.toLowerCase().includes(searchValue.toLowerCase())
-        );
-      }
-
-      const start = pagination.pageIndex * pagination.pageSize;
-      const end = start + pagination.pageSize;
-      const paginatedUsers = fetchedUsers.slice(start, end);
-
-      setUsers(paginatedUsers);
-      setPageCount(Math.ceil(fetchedUsers.length / pagination.pageSize));
+      setAllUsers(res.data.data.users);
     } catch (error: any) {
       console.log("Error while fetching users:", error.message);
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Filter and paginate users
+  useEffect(() => {
+    let filteredUsers = allUsers;
+    // Apply search filter
+    if (searchValue) {
+      filteredUsers = allUsers.filter(
+        (u) =>
+          u.name.toLowerCase().includes(searchValue.toLowerCase()) ||
+          u.email.toLowerCase().includes(searchValue.toLowerCase())
+      );
+    }
+
+    // Calculate pagination
+    const start = pagination.pageIndex * pagination.pageSize;
+    const end = start + pagination.pageSize;
+    const paginatedUsers = filteredUsers.slice(start, end);
+
+    setUsers(paginatedUsers);
+    setPageCount(Math.ceil(filteredUsers.length / pagination.pageSize));
+  }, [allUsers, searchValue, pagination.pageIndex, pagination.pageSize]);
+
+  // Handle search change and reset to page 1
+  const handleSearchChange = (value: string) => {
+    setSearchValue(value);
+    setPagination((prev) => ({ ...prev, pageIndex: 0 })); // Reset to first page
+  };
+
+  // Fetch users on mount
+  useEffect(() => {
+    fetchAllUsers();
+  }, []);
 
   // block user
   const blockUser = async () => {
@@ -143,16 +162,12 @@ const Users = () => {
       if (res.data.success) {
         alert(selectedUser.isBlocked ? "User Unblocked" : "User Blocked");
         setIsModalOpen(false);
-        getUsers();
+        fetchAllUsers(); // Refresh all users
       }
     } catch (error: any) {
       alert("Error occurred while blocking user");
     }
   };
-
-  useEffect(() => {
-    getUsers();
-  }, [searchValue, pagination.pageIndex, pagination.pageSize]);
 
   const columns: ColumnDef<User>[] = [
     {
@@ -232,7 +247,7 @@ const Users = () => {
       <UserDataTableToolbar
         table={table}
         searchValue={searchValue}
-        onSearchChange={setSearchValue}
+        onSearchChange={handleSearchChange}
         isLoading={isLoading}
       />
 
@@ -399,6 +414,45 @@ const Users = () => {
             )}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="flex items-center justify-between px-2">
+        <div className="flex-1 text-sm text-muted-foreground">
+          {users.length > 0 && (
+            <>
+              Showing {pagination.pageIndex * pagination.pageSize + 1} to{" "}
+              {Math.min(
+                (pagination.pageIndex + 1) * pagination.pageSize,
+                (searchValue ? users.length : allUsers.length)
+              )}{" "}
+              of {searchValue ? users.length : allUsers.length} users
+            </>
+          )}
+        </div>
+        <div className="flex items-center space-x-6 lg:space-x-8">
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+            >
+              Previous
+            </Button>
+            <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+              Page {pagination.pageIndex + 1} of {pageCount}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );
