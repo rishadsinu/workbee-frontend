@@ -31,7 +31,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AuthService } from "@/services/auth-service";
-import axios from "axios";
 
 // Define User type
 interface User {
@@ -60,8 +59,7 @@ function UserDataTableToolbar({
   onSearchChange,
   isLoading = false,
 }: UserDataTableToolbarProps) {
-  const isFiltered =
-    table.getState().columnFilters.length > 0 || searchValue !== "";
+  const isFiltered = searchValue !== "";
 
   return (
     <div className="flex items-center justify-between mb-4">
@@ -76,10 +74,7 @@ function UserDataTableToolbar({
         {isFiltered && (
           <Button
             variant="ghost"
-            onClick={() => {
-              table.resetColumnFilters();
-              onSearchChange("");
-            }}
+            onClick={() => onSearchChange("")}
             className="h-8 px-2 lg:px-3"
             disabled={isLoading}
           >
@@ -94,25 +89,43 @@ function UserDataTableToolbar({
 // Main Component
 const Users = () => {
   const [users, setUsers] = useState<User[]>([]);
-  const [allUsers, setAllUsers] = useState<User[]>([]); 
+  const [totalUsers, setTotalUsers] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [searchValue, setSearchValue] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
-    pageSize: 5,
+    pageSize: 10,
   });
-  const [pageCount, setPageCount] = useState(1);
+  const [pageCount, setPageCount] = useState(0);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // fetch all users (only once)
-  const fetchAllUsers = async () => {
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchValue);
+      setPagination((prev) => ({ ...prev, pageIndex: 0 })); // Reset to first page on search
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchValue]);
+
+  // Fetch users with server-side pagination and search
+  const fetchUsers = async () => {
     try {
       setIsLoading(true);
-      const res = await AuthService.getUsers();
-      setAllUsers(res.data.data.users);
+      const res = await AuthService.getUsers(
+        pagination.pageIndex + 1, // Backend expects 1-based page numbers
+        pagination.pageSize,
+        debouncedSearch
+      );
+
+      setUsers(res.data.data.users);
+      setTotalUsers(res.data.data.total);
+      setPageCount(res.data.data.totalPages);
     } catch (error: any) {
       console.log("Error while fetching users:", error.message);
     } finally {
@@ -120,39 +133,17 @@ const Users = () => {
     }
   };
 
-  // Filter and paginate users
+  // Fetch users when pagination or debounced search changes
   useEffect(() => {
-    let filteredUsers = allUsers;
-    // Apply search filter
-    if (searchValue) {
-      filteredUsers = allUsers.filter(
-        (u) =>
-          u.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-          u.email.toLowerCase().includes(searchValue.toLowerCase())
-      );
-    }
+    fetchUsers();
+  }, [pagination.pageIndex, pagination.pageSize, debouncedSearch]);
 
-    // Calculate pagination
-    const start = pagination.pageIndex * pagination.pageSize;
-    const end = start + pagination.pageSize;
-    const paginatedUsers = filteredUsers.slice(start, end);
-
-    setUsers(paginatedUsers);
-    setPageCount(Math.ceil(filteredUsers.length / pagination.pageSize));
-  }, [allUsers, searchValue, pagination.pageIndex, pagination.pageSize]);
-
-  // Handle search change and reset to page 1
+  // Handle search change
   const handleSearchChange = (value: string) => {
     setSearchValue(value);
-    setPagination((prev) => ({ ...prev, pageIndex: 0 })); // Reset to first page
   };
 
-  // Fetch users on mount
-  useEffect(() => {
-    fetchAllUsers();
-  }, []);
-
-  // block user
+  // Block/Unblock user
   const blockUser = async () => {
     if (!selectedUser) return;
 
@@ -162,7 +153,7 @@ const Users = () => {
       if (res.data.success) {
         alert(selectedUser.isBlocked ? "User Unblocked" : "User Blocked");
         setIsModalOpen(false);
-        fetchAllUsers(); // Refresh all users
+        fetchUsers(); // Refresh current page
       }
     } catch (error: any) {
       alert("Error occurred while blocking user");
@@ -285,7 +276,6 @@ const Users = () => {
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-gray-700">Status :</span>
                     <div className="flex items-center gap-2">
-                      {/* Status Badge */}
                       <span
                         className={`
                           inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium
@@ -296,7 +286,6 @@ const Users = () => {
                           }
                         `}
                       >
-                        {/* Indicator Dot */}
                         <span
                           className={`
                             w-2 h-2 rounded-full
@@ -419,14 +408,14 @@ const Users = () => {
       {/* Pagination Controls */}
       <div className="flex items-center justify-between px-2">
         <div className="flex-1 text-sm text-muted-foreground">
-          {users.length > 0 && (
+          {totalUsers > 0 && (
             <>
               Showing {pagination.pageIndex * pagination.pageSize + 1} to{" "}
               {Math.min(
                 (pagination.pageIndex + 1) * pagination.pageSize,
-                (searchValue ? users.length : allUsers.length)
+                totalUsers
               )}{" "}
-              of {searchValue ? users.length : allUsers.length} users
+              of {totalUsers} users
             </>
           )}
         </div>
@@ -436,18 +425,18 @@ const Users = () => {
               variant="outline"
               size="sm"
               onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
+              disabled={!table.getCanPreviousPage() || isLoading}
             >
               Previous
             </Button>
             <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-              Page {pagination.pageIndex + 1} of {pageCount}
+              Page {pagination.pageIndex + 1} of {pageCount || 1}
             </div>
             <Button
               variant="outline"
               size="sm"
               onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
+              disabled={!table.getCanNextPage() || isLoading}
             >
               Next
             </Button>

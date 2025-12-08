@@ -45,10 +45,14 @@ export const AuthService = {
     adminLogin: (data: { email: string, password: string }) => {
         return api.post("/auth/admin/login", data)
     },
-    // Fetch users list
-    getUsers: () => {
-        return api.get("/auth/admin/get-users")
+
+    getUsers: (page: number, limit: number, search: string) => {
+        return api.get("/auth/admin/get-users", {
+            params: { page, limit, search }
+        });
     },
+
+
     // block user
     blockUser: (id: string) => {
         return api.patch(`/auth/admin/block-user/${id}`);
