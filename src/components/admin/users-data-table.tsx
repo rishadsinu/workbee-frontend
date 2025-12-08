@@ -31,6 +31,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AuthService } from "@/services/auth-service";
+import { useDebounce } from "@/hooks/useDebounce";
 
 // Define User type
 interface User {
@@ -64,19 +65,25 @@ function UserDataTableToolbar({
   return (
     <div className="flex items-center justify-between mb-4">
       <div className="flex flex-1 flex-col-reverse items-start gap-y-2 sm:flex-row sm:items-center sm:space-x-2">
-        <Input
-          placeholder="Search users..."
-          value={searchValue}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="h-8 w-[150px] lg:w-[250px]"
-          disabled={isLoading}
-        />
+        <div className="relative">
+          <Input
+            placeholder="Search users..."
+            value={searchValue}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="h-8 w-[150px] lg:w-[250px]"
+          />
+          {/* Loading spinner inside input */}
+          {isLoading && searchValue && (
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <div className="w-4 h-4 border-2 border-gray-600 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          )}
+        </div>
         {isFiltered && (
           <Button
             variant="ghost"
             onClick={() => onSearchChange("")}
             className="h-8 px-2 lg:px-3"
-            disabled={isLoading}
           >
             Reset
           </Button>
@@ -92,9 +99,8 @@ const Users = () => {
   const [totalUsers, setTotalUsers] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [searchValue, setSearchValue] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnFilters, setColumnFiltersState] = useState<ColumnFiltersState>([]);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -103,22 +109,15 @@ const Users = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Debounce search input
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchValue);
-      setPagination((prev) => ({ ...prev, pageIndex: 0 })); // Reset to first page on search
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [searchValue]);
+  // Use your custom debounce hook
+  const debouncedSearch = useDebounce(searchValue, 500);
 
   // Fetch users with server-side pagination and search
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
       const res = await AuthService.getUsers(
-        pagination.pageIndex + 1, // Backend expects 1-based page numbers
+        pagination.pageIndex + 1,
         pagination.pageSize,
         debouncedSearch
       );
@@ -132,6 +131,11 @@ const Users = () => {
       setIsLoading(false);
     }
   };
+
+  // Reset to first page when debounced search changes
+  useEffect(() => {
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+  }, [debouncedSearch]);
 
   // Fetch users when pagination or debounced search changes
   useEffect(() => {
@@ -153,7 +157,7 @@ const Users = () => {
       if (res.data.success) {
         alert(selectedUser.isBlocked ? "User Unblocked" : "User Blocked");
         setIsModalOpen(false);
-        fetchUsers(); // Refresh current page
+        fetchUsers();
       }
     } catch (error: any) {
       alert("Error occurred while blocking user");
@@ -229,7 +233,7 @@ const Users = () => {
     manualSorting: true,
     state: { sorting, columnFilters, pagination },
     onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
+    onColumnFiltersChange: setColumnFiltersState,
     onPaginationChange: setPagination,
   });
 
@@ -244,7 +248,6 @@ const Users = () => {
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-w-md rounded-xl p-0 overflow-hidden">
-          {/* Header */}
           <div className="px-6 py-4 border-b bg-gray-50">
             <DialogHeader>
               <DialogTitle className="text-lg font-semibold">
@@ -253,11 +256,9 @@ const Users = () => {
             </DialogHeader>
           </div>
 
-          {/* Body */}
           <div className="px-6 py-5 space-y-6">
             {selectedUser && (
               <div className="space-y-4 text-sm">
-                {/* Basic Info */}
                 <div className="space-y-2">
                   <p>
                     <span className="font-medium text-gray-700">Name : </span>{" "}
@@ -272,7 +273,6 @@ const Users = () => {
                     {selectedUser.role}
                   </p>
 
-                  {/* Status with Badge */}
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-gray-700">Status :</span>
                     <div className="flex items-center gap-2">
@@ -309,10 +309,8 @@ const Users = () => {
                   </p>
                 </div>
 
-                {/* Divider */}
                 <div className="border-t pt-4" />
 
-                {/* Additional Info */}
                 <div className="space-y-2">
                   <p>
                     <span className="font-medium text-gray-700">
@@ -332,7 +330,6 @@ const Users = () => {
             )}
           </div>
 
-          {/* Footer */}
           <div className="px-6 py-4 border-t bg-gray-50 flex justify-end">
             <Button
               variant="outline"
@@ -369,13 +366,15 @@ const Users = () => {
           </TableHeader>
 
           <TableBody>
-            {isLoading ? (
+            {isLoading && users.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
                   className="text-center h-24"
                 >
-                  Loading...
+                  <div className="flex items-center justify-center">
+                    <div className="w-6 h-6 border-2 border-gray-600 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : users.length ? (
@@ -405,7 +404,6 @@ const Users = () => {
         </Table>
       </div>
 
-      {/* Pagination Controls */}
       <div className="flex items-center justify-between px-2">
         <div className="flex-1 text-sm text-muted-foreground">
           {totalUsers > 0 && (

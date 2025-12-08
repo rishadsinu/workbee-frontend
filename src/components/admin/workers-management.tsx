@@ -246,11 +246,15 @@ export default function WorkersManagementComponent() {
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearch(searchTerm)
-            setCurrentPage(1) // Reset to first page on search
         }, 500)
 
         return () => clearTimeout(timer)
     }, [searchTerm])
+
+    // Reset to first page when debounced search changes
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [debouncedSearch])
 
     // Fetch workers with server-side pagination and search
     const getAllWorkers = async () => {
@@ -310,7 +314,7 @@ export default function WorkersManagementComponent() {
         setCurrentPage(newPage)
     }
 
-    if (loading && currentPage === 1) {
+    if (loading && workers.length === 0) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-gray-50">
                 <div className="text-center">
@@ -334,6 +338,12 @@ export default function WorkersManagementComponent() {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="pl-9"
                             />
+                            {/* Loading spinner inside input */}
+                            {loading && searchTerm && (
+                                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                    <div className="w-4 h-4 border-2 border-gray-600 border-t-transparent rounded-full animate-spin"></div>
+                                </div>
+                            )}
                         </div>
                         {searchTerm && (
                             <Button
@@ -369,7 +379,7 @@ export default function WorkersManagementComponent() {
                             </thead>
 
                             <tbody className="bg-white divide-y divide-gray-200">
-                                {loading ? (
+                                {loading && workers.length === 0 ? (
                                     <tr>
                                         <td colSpan={5} className="px-6 py-12 text-center">
                                             <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
