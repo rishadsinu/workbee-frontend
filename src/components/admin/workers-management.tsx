@@ -1,8 +1,6 @@
-
 import { useState, useEffect } from "react"
 import { Eye, X, Search, BookmarkIcon } from "lucide-react"
 import { WorkService } from "@/services/work-service"
-import { AuthService } from "@/services/auth-service"
 import { Toggle } from "../ui/toggle"
 
 // Types
@@ -233,21 +231,42 @@ const Modal = ({
 
 // Main Component
 export default function WorkersManagementComponent() {
-    const [newAppliers, setNewAppliers] = useState<Applier[]>([])
+    const [workers, setWorkers] = useState<Applier[]>([])
+    const [totalWorkers, setTotalWorkers] = useState(0)
     const [loading, setLoading] = useState(true)
     const [selectedApplier, setSelectedApplier] = useState<Applier | null>(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [searchTerm, setSearchTerm] = useState("")
+    const [debouncedSearch, setDebouncedSearch] = useState("")
     const [currentPage, setCurrentPage] = useState(1)
     const [itemsPerPage] = useState(10)
+    const [totalPages, setTotalPages] = useState(0)
 
+    // Debounce search input
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchTerm)
+            setCurrentPage(1) // Reset to first page on search
+        }, 500)
+
+        return () => clearTimeout(timer)
+    }, [searchTerm])
+
+    // Fetch workers with server-side pagination and search
     const getAllWorkers = async () => {
         try {
             setLoading(true)
-            const response = await WorkService.getAllWorkers()
+            const response = await WorkService.getAllWorkers(
+                currentPage,
+                itemsPerPage,
+                debouncedSearch
+            )
+
             if (response.data.success) {
-                const workers = response.data.data
-                setNewAppliers(Array.isArray(workers) ? workers : [])
+                const data = response.data.data
+                setWorkers(data.workers || [])
+                setTotalWorkers(data.total || 0)
+                setTotalPages(data.totalPages || 0)
             }
         } catch (error) {
             console.error("Error fetching all workers:", error)
@@ -256,6 +275,11 @@ export default function WorkersManagementComponent() {
             setLoading(false)
         }
     }
+
+    // Fetch workers when page or debounced search changes
+    useEffect(() => {
+        getAllWorkers()
+    }, [currentPage, debouncedSearch])
 
     const handleBlockUnblock = async (workerId: string) => {
         if (!workerId) {
@@ -269,7 +293,7 @@ export default function WorkersManagementComponent() {
             if (res.data.success) {
                 alert(selectedApplier?.isBlocked ? "Worker Unblocked" : "Worker Blocked")
                 setIsModalOpen(false)
-                getAllWorkers()
+                getAllWorkers() // Refresh current page
             }
         } catch (error: any) {
             console.error("Error blocking/unblocking worker:", error)
@@ -277,28 +301,16 @@ export default function WorkersManagementComponent() {
         }
     }
 
-    useEffect(() => {
-        getAllWorkers()
-    }, [])
-
-    // Search and pagination
-    const filteredAppliers = newAppliers.filter((a) =>
-        [a.name, a.email, a.phone, a.location]
-            .join(" ")
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase())
-    )
-
-    const indexOfLastItem = currentPage * itemsPerPage
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage
-    const currentItems = filteredAppliers.slice(indexOfFirstItem, indexOfLastItem)
-
     const handleViewDetails = (applier: Applier) => {
         setSelectedApplier(applier)
         setIsModalOpen(true)
     }
 
-    if (loading) {
+    const handlePageChange = (newPage: number) => {
+        setCurrentPage(newPage)
+    }
+
+    if (loading && currentPage === 1) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-gray-50">
                 <div className="text-center">
@@ -323,6 +335,15 @@ export default function WorkersManagementComponent() {
                                 className="pl-9"
                             />
                         </div>
+                        {searchTerm && (
+                            <Button
+                                variant="ghost"
+                                onClick={() => setSearchTerm("")}
+                                size="sm"
+                            >
+                                Reset
+                            </Button>
+                        )}
                     </div>
 
                     <div className="overflow-x-auto">
@@ -335,7 +356,6 @@ export default function WorkersManagementComponent() {
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                                         Email
                                     </th>
-                                   
                                     <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                                         Status
                                     </th>
@@ -349,8 +369,14 @@ export default function WorkersManagementComponent() {
                             </thead>
 
                             <tbody className="bg-white divide-y divide-gray-200">
-                                {currentItems.length > 0 ? (
-                                    currentItems.map((worker) => (
+                                {loading ? (
+                                    <tr>
+                                        <td colSpan={5} className="px-6 py-12 text-center">
+                                            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                                        </td>
+                                    </tr>
+                                ) : workers.length > 0 ? (
+                                    workers.map((worker) => (
                                         <tr key={worker._id} className="hover:bg-gray-50 transition-colors">
                                             <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
                                                 {worker.name}
@@ -405,7 +431,7 @@ export default function WorkersManagementComponent() {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                                        <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
                                             No workers found.
                                         </td>
                                     </tr>
@@ -413,6 +439,38 @@ export default function WorkersManagementComponent() {
                             </tbody>
                         </table>
                     </div>
+
+                    {/* Pagination Controls */}
+                    {totalWorkers > 0 && (
+                        <div className="px-6 py-4 border-t flex items-center justify-between">
+                            <div className="text-sm text-gray-600">
+                                Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
+                                {Math.min(currentPage * itemsPerPage, totalWorkers)} of{" "}
+                                {totalWorkers} workers
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handlePageChange(currentPage - 1)}
+                                    disabled={currentPage === 1 || loading}
+                                >
+                                    Previous
+                                </Button>
+                                <span className="text-sm text-gray-700 px-4">
+                                    Page {currentPage} of {totalPages || 1}
+                                </span>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handlePageChange(currentPage + 1)}
+                                    disabled={currentPage >= totalPages || loading}
+                                >
+                                    Next
+                                </Button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 

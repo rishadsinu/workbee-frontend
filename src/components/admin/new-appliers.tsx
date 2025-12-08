@@ -18,7 +18,7 @@ interface Applier {
     honest: boolean
     termsAccepted: boolean
   }
-  status: string;
+  status: string
   createdAt?: Date
 }
 
@@ -185,7 +185,6 @@ const Modal = ({
               <label className="text-sm font-medium text-gray-700">Phone</label>
               <p className="mt-1 text-sm text-gray-900">{applier.phone}</p>
             </div>
-
             <div>
               <label className="text-sm font-medium text-gray-700">Location</label>
               <p className="mt-1 text-sm text-gray-900">{applier.location}</p>
@@ -227,8 +226,9 @@ const Modal = ({
               {Object.entries(applier.confirmations).map(([key, value]) => (
                 <div key={key} className="flex items-center gap-2">
                   <div
-                    className={`w-5 h-5 rounded flex items-center justify-center ${value ? "bg-black" : "bg-gray-300"
-                      }`}
+                    className={`w-5 h-5 rounded flex items-center justify-center ${
+                      value ? "bg-black" : "bg-gray-300"
+                    }`}
                   >
                     {value && (
                       <svg
@@ -252,7 +252,6 @@ const Modal = ({
         </div>
 
         <div className="border-t px-6 py-4 flex items-center justify-between">
-          {/* Left side text */}
           <div>
             <h6 className="text-sm font-medium text-gray-800">
               Accept and give permission
@@ -261,19 +260,15 @@ const Modal = ({
               Enable this to approve the worker application
             </p>
           </div>
-
-          {/* Buttons */}
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={approveWorker}>
               Approve
             </Button>
-
             <Button variant="outline" onClick={rejectWorker}>
               Reject
             </Button>
           </div>
         </div>
-
       </div>
     </div>
   )
@@ -281,21 +276,42 @@ const Modal = ({
 
 // Main Component
 export default function NewAppliers() {
-  const [newAppliers, setNewAppliers] = useState<Applier[]>([])
+  const [appliers, setAppliers] = useState<Applier[]>([])
+  const [totalAppliers, setTotalAppliers] = useState(0)
   const [loading, setLoading] = useState(true)
   const [selectedApplier, setSelectedApplier] = useState<Applier | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
+  const [debouncedSearch, setDebouncedSearch] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(10)
+  const [totalPages, setTotalPages] = useState(0)
 
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm)
+      setCurrentPage(1) // Reset to first page on search
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
+  // Fetch appliers with server-side pagination and search
   const getNewAppliers = async () => {
     try {
       setLoading(true)
-      const response = await WorkService.getAppliers()
+      const response = await WorkService.getAppliers(
+        currentPage,
+        itemsPerPage,
+        debouncedSearch
+      )
+
       if (response.data.success) {
-        const appliers = response.data.data
-        setNewAppliers(Array.isArray(appliers) ? appliers : [])
+        const data = response.data.data
+        setAppliers(data.workers || [])
+        setTotalAppliers(data.total || 0)
+        setTotalPages(data.totalPages || 0)
       }
     } catch (error) {
       console.error("Error fetching new appliers:", error)
@@ -305,28 +321,21 @@ export default function NewAppliers() {
     }
   }
 
+  // Fetch appliers when page or debounced search changes
   useEffect(() => {
     getNewAppliers()
-  }, [])
-
-  // Search and pagination
-  const filteredAppliers = newAppliers.filter((a) =>
-    [a.name, a.email, a.phone, a.location]
-      .join(" ")
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase())
-  )
-
-  const indexOfLastItem = currentPage * itemsPerPage
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage
-  const currentItems = filteredAppliers.slice(indexOfFirstItem, indexOfLastItem)
+  }, [currentPage, debouncedSearch])
 
   const handleViewDetails = (applier: Applier) => {
     setSelectedApplier(applier)
     setIsModalOpen(true)
   }
 
-  if (loading) {
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage)
+  }
+
+  if (loading && currentPage === 1) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
@@ -351,6 +360,15 @@ export default function NewAppliers() {
                 className="pl-9"
               />
             </div>
+            {searchTerm && (
+              <Button
+                variant="ghost"
+                onClick={() => setSearchTerm("")}
+                size="sm"
+              >
+                Reset
+              </Button>
+            )}
           </div>
 
           <div className="overflow-x-auto">
@@ -367,7 +385,7 @@ export default function NewAppliers() {
                     Phone
                   </th>
                   <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Approve
+                    Status
                   </th>
                   <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Details
@@ -376,8 +394,14 @@ export default function NewAppliers() {
               </thead>
 
               <tbody className="bg-white divide-y divide-gray-200">
-                {currentItems.length > 0 ? (
-                  currentItems.map((applier) => (
+                {loading ? (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-12 text-center">
+                      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                    </td>
+                  </tr>
+                ) : appliers.length > 0 ? (
+                  appliers.map((applier) => (
                     <tr key={applier.id || applier._id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
                         {applier.name}
@@ -385,19 +409,36 @@ export default function NewAppliers() {
                       <td className="px-6 py-4 text-gray-600">{applier.email}</td>
                       <td className="px-6 py-4 text-gray-600">{applier.phone}</td>
                       <td className="px-6 py-4 text-center">
-                        <Toggle
-                          aria-label="Toggle bookmark"
-                          size="sm"
-                          variant="outline"
-                          className="data-[state=on]:bg-transparent data-[state=on]:*:[svg]:fill-blue-500 data-[state=on]:*:[svg]:stroke-blue-500"
+                        <span
+                          className={`
+                            inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
+                            ${
+                              applier.status === "approved"
+                                ? "bg-green-100/80 text-green-700 border border-green-200"
+                                : applier.status === "rejected"
+                                ? "bg-red-100/80 text-red-700 border border-red-200"
+                                : "bg-yellow-100/80 text-yellow-700 border border-yellow-200"
+                            }
+                          `}
                         >
-                          <BookmarkIcon />
+                          <span
+                            className={`
+                              w-1.5 h-1.5 rounded-full
+                              ${
+                                applier.status === "approved"
+                                  ? "bg-green-500"
+                                  : applier.status === "rejected"
+                                  ? "bg-red-500"
+                                  : "bg-yellow-500"
+                              }
+                            `}
+                          />
                           {applier.status === "approved"
                             ? "Approved"
                             : applier.status === "rejected"
-                              ? "Rejected"
-                              : "Pending"}
-                        </Toggle>
+                            ? "Rejected"
+                            : "Pending"}
+                        </span>
                       </td>
                       <td className="px-6 py-4 text-center">
                         <Button
@@ -414,7 +455,7 @@ export default function NewAppliers() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
                       No appliers found.
                     </td>
                   </tr>
@@ -422,6 +463,38 @@ export default function NewAppliers() {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination Controls */}
+          {totalAppliers > 0 && (
+            <div className="px-6 py-4 border-t flex items-center justify-between">
+              <div className="text-sm text-gray-600">
+                Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
+                {Math.min(currentPage * itemsPerPage, totalAppliers)} of{" "}
+                {totalAppliers} appliers
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1 || loading}
+                >
+                  Previous
+                </Button>
+                <span className="text-sm text-gray-700 px-4">
+                  Page {currentPage} of {totalPages || 1}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage >= totalPages || loading}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
