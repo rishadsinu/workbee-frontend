@@ -30,26 +30,24 @@ export default function MyWorks() {
     const [error, setError] = useState<string | null>(null);
 
     const getAllWorks = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-            
-            const res = await WorkService.getMyWorks();
-            
-            console.log('API Response:', res.data);
-            
-            if (res.data.success) {
-                setWorksData(res.data.data.works || []);
-            } else {
-                setError('Error while fetching works data');
-            }
-        } catch (error: any) {
-            console.error('Error fetching works:', error);
-            setError(error.response?.data?.message || error.message || 'Error fetching works data');
-        } finally {
-            setLoading(false);
+    try {
+        setLoading(true);
+        setError(null);
+        
+        const res = await WorkService.getMyWorks();
+        
+        if (res.data.success) {
+            setWorksData(res.data.data.works || []);
+        } else {
+            setError('Error while fetching works data');
         }
-    };
+    } catch (error: any) {
+        console.error('Error fetching works:', error);
+        setError(error.response?.data?.message || error.message || 'Error fetching works data');
+    } finally {
+        setLoading(false);
+    }
+};
 
     useEffect(() => {
         getAllWorks();

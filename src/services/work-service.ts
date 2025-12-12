@@ -1,4 +1,3 @@
-import { AuthHelper } from "@/utils/auth-helper";
 import { api } from "./axios-instance";
 
 export const WorkService = {
@@ -56,11 +55,9 @@ export const WorkService = {
         return api.patch(`/work/block-worker/${id}`);
     },
 
+    // user
     getMyWorks: () => {
-        const userId = AuthHelper.getUserId();
-        return api.get('/work/get-my-works', {
-            params: { userId }
-        });
-    }
+    return api.get('/work/get-my-works');
+}
 }
 
