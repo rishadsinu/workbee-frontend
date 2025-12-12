@@ -57,7 +57,12 @@ export const WorkService = {
 
     // user
     getMyWorks: () => {
-    return api.get('/work/get-my-works');
-}
+        return api.get('/work/get-my-works');
+    },
+
+    updateWork: (workId: string, workData: any) => {
+        return api.put(`/work/update-work/${workId}`, workData);
+    },
+    
 }
 
