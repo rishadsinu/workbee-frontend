@@ -59,7 +59,7 @@ function EditModal({ work, isOpen, onClose, onUpdate }: EditModalProps) {
 
         try {
             const response = await WorkService.updateWork(formData.id, formData);
-            
+
             if (response.data.success) {
                 onUpdate(formData);
                 onClose();
@@ -400,9 +400,9 @@ export default function MyWorks() {
         try {
             setLoading(true);
             setError(null);
-            
+
             const res = await WorkService.getMyWorks();
-            
+
             if (res.data.success) {
                 setWorksData(res.data.data.works || []);
             } else {
@@ -440,28 +440,30 @@ export default function MyWorks() {
     };
 
     const handleDelete = async (workId: string) => {
-        if (window.confirm('Are you sure you want to delete this work?')) {
-            // TODO: Implement actual delete API call
-            // await WorkService.deleteWork(workId);
-            setWorksData(prevWorks => prevWorks.filter(work => work.id !== workId));
-            console.log('Delete work:', workId);
+        const confirmDelete = window.confirm("Are you sure you want to delete this work?");
+        if (!confirmDelete) return;
+        try {
+            const res = await WorkService.deleteMyWork(workId);
+
+            if (res.data.success) {
+                alert("Deleted successfully");
+
+                // Remove the deleted work from UI
+                setWorksData(prev => prev.filter(work => work.id !== workId));
+            } else {
+                alert("Error while deleting work");
+            }
+        } catch (error: any) {
+            console.error("Delete error:", error);
+            alert(error.response?.data?.message || "Error while deleting work");
         }
     };
+
 
     if (loading) {
         return (
             <div style={{ padding: '20px', textAlign: 'center' }}>
                 <p>Loading your works...</p>
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div style={{ padding: '20px', color: 'red' }}>
-                <h2>Error</h2>
-                <p>{error}</p>
-                <button onClick={getAllWorks}>Try Again</button>
             </div>
         );
     }
@@ -481,14 +483,14 @@ export default function MyWorks() {
             <p style={{ color: '#666', marginBottom: '20px' }}>
                 Total Works: {works.length}
             </p>
-            
+
             {works.map((work) => (
-                <div 
-                    key={work.id} 
-                    style={{ 
-                        border: '1px solid #ddd', 
+                <div
+                    key={work.id}
+                    style={{
+                        border: '1px solid #ddd',
                         borderRadius: '8px',
-                        padding: '20px', 
+                        padding: '20px',
                         margin: '15px 0',
                         backgroundColor: '#f9f9f9',
                         boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
@@ -497,31 +499,31 @@ export default function MyWorks() {
                     <h2 style={{ marginTop: 0, color: '#333' }}>
                         {work.workTitle}
                     </h2>
-                    
+
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                         <p><strong>Category:</strong> {work.workCategory}</p>
                         <p><strong>Type:</strong> {work.workType}</p>
-                        
+
                         {work.date && (
                             <p><strong>Date:</strong> {new Date(work.date).toLocaleDateString()}</p>
                         )}
-                        
+
                         {work.startDate && (
                             <p><strong>Start Date:</strong> {new Date(work.startDate).toLocaleDateString()}</p>
                         )}
-                        
+
                         {work.endDate && (
                             <p><strong>End Date:</strong> {new Date(work.endDate).toLocaleDateString()}</p>
                         )}
-                        
+
                         {work.budget && (
                             <p><strong>Budget:</strong> ${work.budget}</p>
                         )}
-                        
+
                         {work.status && (
                             <p>
-                                <strong>Status:</strong> 
-                                <span style={{ 
+                                <strong>Status:</strong>
+                                <span style={{
                                     marginLeft: '5px',
                                     padding: '2px 8px',
                                     borderRadius: '4px',
@@ -532,26 +534,26 @@ export default function MyWorks() {
                             </p>
                         )}
                     </div>
-                    
+
                     {work.description && (
                         <div style={{ marginTop: '15px' }}>
                             <strong>Description:</strong>
                             <p style={{ marginTop: '5px', color: '#555' }}>{work.description}</p>
                         </div>
                     )}
-                    
+
                     {work.manualAddress && (
                         <p><strong>Address:</strong> {work.manualAddress}</p>
                     )}
-                    
+
                     {work.landmark && (
                         <p><strong>Landmark:</strong> {work.landmark}</p>
                     )}
-                    
+
                     <div style={{ marginTop: '15px', borderTop: '1px solid #ddd', paddingTop: '10px' }}>
-                        <button 
-                            style={{ 
-                                padding: '8px 16px', 
+                        <button
+                            style={{
+                                padding: '8px 16px',
                                 marginRight: '10px',
                                 backgroundColor: '#007bff',
                                 color: 'white',
@@ -563,8 +565,8 @@ export default function MyWorks() {
                         >
                             Edit
                         </button>
-                        <button 
-                            style={{ 
+                        <button
+                            style={{
                                 padding: '8px 16px',
                                 backgroundColor: '#dc3545',
                                 color: 'white',

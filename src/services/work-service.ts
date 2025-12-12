@@ -63,6 +63,9 @@ export const WorkService = {
     updateWork: (workId: string, workData: any) => {
         return api.put(`/work/update-work/${workId}`, workData);
     },
-    
+
+    deleteMyWork:(workId:string) => {
+        return api.delete(`/work/delete-my-work/${workId}`)
+    }
 }
 
