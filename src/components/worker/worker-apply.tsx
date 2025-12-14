@@ -50,8 +50,9 @@ export function ApplyWorkerForm({ className, ...props }: React.ComponentProps<"d
 
   const handleSubmit = async () => {
     try {
-      setIsLoading(true)
+      setIsLoading(true);
 
+      // Validation
       if (!form.name || !form.email || !form.phone) {
         alert("Please fill all required details.");
         return;
@@ -67,6 +68,13 @@ export function ApplyWorkerForm({ className, ...props }: React.ComponentProps<"d
         return;
       }
 
+      // Check all confirmations
+      if (!form.confirmations.reliable ||
+        !form.confirmations.honest ||
+        !form.confirmations.termsAccepted) {
+        alert("Please confirm all the required statements.");
+        return;
+      }
 
       const workerData = {
         name: form.name,
@@ -81,21 +89,32 @@ export function ApplyWorkerForm({ className, ...props }: React.ComponentProps<"d
           honest: form.confirmations.honest,
           termsAccepted: form.confirmations.termsAccepted,
         }
-      }
+      };
 
-      const result = await WorkService.applyForWorker(workerData)
+      console.log("Submitting worker application:", workerData);
+
+      const result = await WorkService.applyForWorker(workerData);
+
+      console.log("Application result:", result);
 
       if (result.data.success) {
-        alert("Successfully applied.check your email, We'll update in 1 hour.")
-        navigate('/')
+        alert("Successfully applied! Check your email. We'll update you within 1 hour.");
+        navigate('/');
+      } else {
+        alert(result.data.message || "Application failed");
       }
-    } catch (error) {
-      console.error('Error:', error)
-      alert("Error while applying to become a worker")
+    } catch (error: any) {
+      console.error('Application Error:', error);
+      console.error('Error Response:', error.response?.data);
+
+      const errorMessage = error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Error while applying to become a worker. Please try again.";
+      alert(errorMessage);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>

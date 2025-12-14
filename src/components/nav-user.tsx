@@ -27,8 +27,9 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { AuthHelper } from "@/utils/auth-helper"
+import { AuthService } from "@/services/auth-service"
 import { useNavigate } from "react-router-dom"
-
+import { useState } from "react"
 
 export function NavUser({
   user,
@@ -41,11 +42,33 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar()
   const navigate = useNavigate()
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
-  const logOut = () => {
-    AuthHelper.clearAuth()
-    navigate('/admin')
-  }
+  const logOut = async () => {
+    if (isLoggingOut) return; 
+
+    setIsLoggingOut(true);
+
+    try {
+      await AuthService.logout();
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      const userRole = AuthHelper.getUserRole();
+      
+      AuthHelper.clearAuth();
+
+      if (userRole === 'admin') {
+        navigate('/admin');
+      } else if (userRole === 'worker') {
+        navigate('/worker/worker-login');
+      } else {
+        navigate('/login'); 
+      }
+
+      setIsLoggingOut(false);
+    }
+  };
 
   return (
     <SidebarMenu>
@@ -107,9 +130,10 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={logOut}
+              disabled={isLoggingOut}
             >
               <IconLogout />
-              Log out
+              {isLoggingOut ? "Logging out..." : "Log out"}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

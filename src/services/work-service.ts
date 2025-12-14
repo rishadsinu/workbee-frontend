@@ -8,7 +8,11 @@ export const WorkService = {
         });
     },
 
-    approveWorkerApplication: (data: { workerId: string | undefined, status: "approved" | "rejected" }) => {
+    approveWorkerApplication: (data: { 
+        workerId: string | undefined; 
+        status: "approved" | "rejected";
+        rejectionReason?: string; 
+    }) => {
         return api.post("/work/approve-worker", data)
     },
 

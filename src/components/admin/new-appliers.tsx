@@ -18,6 +18,8 @@ interface Applier {
     honest: boolean
     termsAccepted: boolean
   }
+  rejectionReason:string
+  rejectedAt:Date
   status: string
   createdAt?: Date
 }
@@ -107,6 +109,7 @@ const Badge = ({
 }
 
 // Modal Component
+
 const Modal = ({
   isOpen,
   onClose,
@@ -118,159 +121,266 @@ const Modal = ({
   applier: Applier | null
   onRefresh: () => void
 }) => {
+  const [showRejectModal, setShowRejectModal] = useState(false)
+  const [rejectionReason, setRejectionReason] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
   if (!isOpen || !applier) return null
 
   const approveWorker = async () => {
     try {
+      setIsSubmitting(true)
       const res = await WorkService.approveWorkerApplication({
         workerId: applier.id || applier._id,
         status: "approved"
       })
       if (res.data.success) {
-        alert('Successfully approved worker')
+        alert('✅ Worker approved successfully! Approval email sent.')
         onClose()
         onRefresh()
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error approving worker:', error)
-      alert('Error approving worker')
+      alert('❌ ' + (error.response?.data?.message || 'Error approving worker'))
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
-  const rejectWorker = async () => {
+  const handleRejectClick = () => {
+    setShowRejectModal(true)
+  }
+
+  const handleRejectSubmit = async () => {
+    if (!rejectionReason.trim()) {
+      alert('⚠️ Please provide a reason for rejection')
+      return
+    }
+
     try {
+      setIsSubmitting(true)
       const res = await WorkService.approveWorkerApplication({
         workerId: applier.id || applier._id,
-        status: "rejected"
+        status: "rejected",
+        rejectionReason: rejectionReason.trim()
       })
       if (res.data.success) {
-        alert('Worker application rejected')
+        alert('✅ Worker application rejected. Notification email sent.')
+        setShowRejectModal(false)
+        setRejectionReason("")
         onClose()
         onRefresh()
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error rejecting worker:', error)
-      alert('Error rejecting worker')
+      alert('❌ ' + (error.response?.data?.message || 'Error rejecting worker'))
+    } finally {
+      setIsSubmitting(false)
     }
+  }
+
+  const handleRejectCancel = () => {
+    setShowRejectModal(false)
+    setRejectionReason("")
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto m-4">
-        <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between z-10">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900">{applier.name}</h2>
-            <p className="text-sm text-gray-500 mt-1">New worker application</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <div className="px-6 py-4 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <>
+      {/* Main Modal */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+        <div className="relative bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto m-4">
+          <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between z-10">
             <div>
-              <label className="text-sm font-medium text-gray-700">Name</label>
-              <p className="mt-1 text-sm text-gray-900">{applier.name}</p>
+              <h2 className="text-xl font-semibold text-gray-900">{applier.name}</h2>
+              <p className="text-sm text-gray-500 mt-1">Worker application</p>
             </div>
-            <div>
-              <label className="text-sm font-medium text-gray-700">Email</label>
-              <p className="mt-1 text-sm text-gray-900">{applier.email}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-700">Phone</label>
-              <p className="mt-1 text-sm text-gray-900">{applier.phone}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-700">Location</label>
-              <p className="mt-1 text-sm text-gray-900">{applier.location}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-700">Work Type</label>
-              <p className="mt-1">
-                <Badge variant="secondary">{applier.workType}</Badge>
-              </p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-700">Applied On</label>
-              <p className="mt-1 text-sm text-gray-900">
-                {applier.createdAt
-                  ? new Date(applier.createdAt).toLocaleDateString()
-                  : "N/A"}
-              </p>
-            </div>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
-          <div className="border-t pt-4">
-            <label className="text-sm font-medium text-gray-700">Preferred Works</label>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {applier.preferredWorks?.length > 0 ? (
-                applier.preferredWorks.map((work, index) => (
-                  <Badge key={index}>{work}</Badge>
-                ))
-              ) : (
-                <span className="text-sm text-gray-500">No preferred works listed</span>
-              )}
-            </div>
-          </div>
+          <div className="px-6 py-4 space-y-6">
+            {/* Show rejection info if rejected */}
+            {applier.status === "rejected" && applier.rejectionReason && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <h4 className="font-semibold text-red-800 mb-2">Previously Rejected</h4>
+                <p className="text-sm text-red-700">
+                  <strong>Reason:</strong> {applier.rejectionReason}
+                </p>
+                {applier.rejectedAt && (
+                  <p className="text-xs text-red-600 mt-1">
+                    Rejected on: {new Date(applier.rejectedAt).toLocaleDateString()}
+                  </p>
+                )}
+              </div>
+            )}
 
-          <div className="border-t pt-4">
-            <label className="text-sm font-medium text-gray-700 mb-3 block">
-              Confirmations
-            </label>
-            <div className="space-y-2">
-              {Object.entries(applier.confirmations).map(([key, value]) => (
-                <div key={key} className="flex items-center gap-2">
-                  <div
-                    className={`w-5 h-5 rounded flex items-center justify-center ${
-                      value ? "bg-black" : "bg-gray-300"
-                    }`}
-                  >
-                    {value && (
-                      <svg
-                        className="w-3 h-3 text-white"
-                        fill="none"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path d="M5 13l4 4L19 7"></path>
-                      </svg>
-                    )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700">Name</label>
+                <p className="mt-1 text-sm text-gray-900">{applier.name}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Email</label>
+                <p className="mt-1 text-sm text-gray-900">{applier.email}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Phone</label>
+                <p className="mt-1 text-sm text-gray-900">{applier.phone}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Location</label>
+                <p className="mt-1 text-sm text-gray-900">{applier.location}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Work Type</label>
+                <p className="mt-1">
+                  <Badge variant="secondary">{applier.workType}</Badge>
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Applied On</label>
+                <p className="mt-1 text-sm text-gray-900">
+                  {applier.createdAt
+                    ? new Date(applier.createdAt).toLocaleDateString()
+                    : "N/A"}
+                </p>
+              </div>
+            </div>
+
+            <div className="border-t pt-4">
+              <label className="text-sm font-medium text-gray-700">Preferred Works</label>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {applier.preferredWorks?.length > 0 ? (
+                  applier.preferredWorks.map((work, index) => (
+                    <Badge key={index}>{work}</Badge>
+                  ))
+                ) : (
+                  <span className="text-sm text-gray-500">No preferred works listed</span>
+                )}
+              </div>
+            </div>
+
+            <div className="border-t pt-4">
+              <label className="text-sm font-medium text-gray-700 mb-3 block">
+                Confirmations
+              </label>
+              <div className="space-y-2">
+                {Object.entries(applier.confirmations).map(([key, value]) => (
+                  <div key={key} className="flex items-center gap-2">
+                    <div
+                      className={`w-5 h-5 rounded flex items-center justify-center ${
+                        value ? "bg-black" : "bg-gray-300"
+                      }`}
+                    >
+                      {value && (
+                        <svg
+                          className="w-3 h-3 text-white"
+                          fill="none"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path d="M5 13l4 4L19 7"></path>
+                        </svg>
+                      )}
+                    </div>
+                    <span className="text-sm text-gray-700 capitalize">{key}</span>
                   </div>
-                  <span className="text-sm text-gray-700 capitalize">{key}</span>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="border-t px-6 py-4 flex items-center justify-between">
-          <div>
-            <h6 className="text-sm font-medium text-gray-800">
-              Accept and give permission
-            </h6>
-            <p className="text-xs text-gray-500">
-              Enable this to approve the worker application
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={approveWorker}>
-              Approve
-            </Button>
-            <Button variant="outline" onClick={rejectWorker}>
-              Reject
-            </Button>
+          <div className="border-t px-6 py-4 flex items-center justify-between">
+            <div>
+              <h6 className="text-sm font-medium text-gray-800">
+                Review Application
+              </h6>
+              <p className="text-xs text-gray-500">
+                Approve or reject this worker application
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                onClick={approveWorker}
+                disabled={isSubmitting || applier.status === "approved"}
+                className="bg-green-50 hover:bg-green-100 text-green-700 border-green-300"
+              >
+                {applier.status === "approved" ? "✓ Approved" : "Approve"}
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={handleRejectClick}
+                disabled={isSubmitting}
+                className="bg-red-50 hover:bg-red-100 text-red-700 border-red-300"
+              >
+                Reject
+              </Button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Rejection Reason Modal */}
+      {showRejectModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/60" onClick={handleRejectCancel} />
+          <div className="relative bg-white rounded-lg shadow-2xl w-full max-w-md m-4 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Reject Application</h3>
+              <button
+                onClick={handleRejectCancel}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Reason for Rejection <span className="text-black-500">*</span>
+              </label>
+              <textarea
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder="Please provide a clear reason for rejection."
+                rows={4}
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black-500 resize-none"
+              />
+              <p className="mt-2 text-xs text-gray-500">
+                💡 The worker will receive this reason via email and can reapply after addressing your concerns.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={handleRejectCancel}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button
+               variant="outline"
+                onClick={handleRejectSubmit}
+                disabled={isSubmitting || !rejectionReason.trim()}
+                className="bg-red-50 hover:bg-red-100 text-red-700 border-red-300"
+              >
+                {isSubmitting ? "Rejecting..." : "Confirm Rejection"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 
