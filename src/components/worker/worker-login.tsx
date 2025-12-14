@@ -27,27 +27,29 @@ export function WorkerLoginForm({
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const navigate = useNavigate()
-    const [showPassword, setShowPassword] = useState(false)
-
+    const [showPassword, setShowPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
+        setIsLoading(true);
 
         try {
             const data = { email, password };
             const result = await AuthService.workerLogin(data);
 
             if (result.data.success) {
-                const { token, worker } = result.data.data;
+                const { accessToken, refreshToken, worker } = result.data.data;
 
-                if (token && worker) {
+                if (accessToken && refreshToken && worker) {
                     if (worker.role !== "worker") {
                         alert("Access denied. Worker privileges required.");
                         return;
                     }
 
-                    AuthHelper.setAuth(token, worker);
+                    AuthHelper.setAuth(accessToken, refreshToken, worker);
+                    
                     alert(result.data.message || "Worker login successful");
                     navigate("/worker/worker-dashboard");
                 } else {
@@ -59,6 +61,8 @@ export function WorkerLoginForm({
         } catch (err: any) {
             console.error('Worker login error:', err);
             alert(err.response?.data?.message || 'Login failed');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -82,7 +86,7 @@ export function WorkerLoginForm({
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="admin@example.com"
+                                    placeholder="worker@example.com"
                                     required
                                 />
                             </Field>
@@ -123,7 +127,9 @@ export function WorkerLoginForm({
                             </Field>
 
                             <Field>
-                                <Button type="submit">Login to worker dashboard</Button>
+                                <Button type="submit" disabled={isLoading}>
+                                    {isLoading ? "Logging in..." : "Login to worker dashboard"}
+                                </Button>
                             </Field>
                         </FieldGroup>
                         <div className="mt-4 text-center text-sm">

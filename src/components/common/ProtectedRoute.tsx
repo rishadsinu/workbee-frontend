@@ -18,7 +18,7 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
       const isLoggedIn = AuthHelper.isLoggedIn();
       const userRole = AuthHelper.getUserRole();
 
-      console.log("🔒 Protected Route Check:", {
+      console.log("Protected Route Check:", {
         path: location.pathname,
         isLoggedIn,
         userRole,

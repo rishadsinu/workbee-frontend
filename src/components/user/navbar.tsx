@@ -12,20 +12,19 @@ const Navbar = () => {
 
   useEffect(() => {
     const verifyUser = async () => {
-      const token = AuthHelper.getToken();
-      const googleUser = AuthHelper.getUser();
+      const accessToken = AuthHelper.getAccessToken();
+      const storedUser = AuthHelper.getUser();
 
-      // If logged in using Google
-      if (googleUser) {
-        setUser(googleUser);
+      if (storedUser) {
+        setUser(storedUser);
 
         if (!AuthHelper.getUserId()) {
-          AuthHelper.setUserId(googleUser._id || googleUser.id);
+          AuthHelper.setUserId(storedUser._id || storedUser.id);
         }
         return;
       }
 
-      if (!token) return;
+      if (!accessToken) return;
 
       try {
         const res = await AuthService.verifyUser();
@@ -34,12 +33,15 @@ const Navbar = () => {
           const loggedUser = res.data.data;
 
           setUser(loggedUser);
+          
+          AuthHelper.setUser(loggedUser);
           AuthHelper.setUserId(loggedUser._id || loggedUser.id);
         } else {
           AuthHelper.clearAuth();
           setUser(null);
         }
-      } catch {
+      } catch (error) {
+        console.error("User verification failed:", error);
         AuthHelper.clearAuth();
         setUser(null);
       }
@@ -48,11 +50,16 @@ const Navbar = () => {
     verifyUser();
   }, []);
 
-
-  const handleLogout = () => {
-    AuthHelper.clearAuth();
-    setUser(null);
-    navigate("/");
+  const handleLogout = async () => {
+    try {
+      await AuthService.logout();
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      AuthHelper.clearAuth();
+      setUser(null);
+      navigate("/");
+    }
   };
 
 

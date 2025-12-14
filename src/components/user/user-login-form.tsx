@@ -43,15 +43,15 @@ export function LoginForm({
             const res = await AuthService.login(form);
 
             if (res.data.success) {
-                const { token, user } = res.data.data;
+                const { accessToken, refreshToken, user } = res.data.data;
 
-                if (token && user) {
+                if (accessToken && refreshToken && user) {
                     if (user.role !== "user") {
                         alert("Access denied. Please use the correct login page.");
                         return;
                     }
 
-                    AuthHelper.setAuth(token, user);
+                    AuthHelper.setAuth(accessToken, refreshToken, user);
                     alert(res.data.message || "Login Successful");
                     navigate("/");
                 } else {
@@ -67,8 +67,7 @@ export function LoginForm({
         }
     };
 
-
-    // google auth
+    // Google auth
     const handleGoogleAuthLogin = async (credentialResponse: any) => {
         try {
             const res = await AuthService.googleAuthLogin({
@@ -76,10 +75,10 @@ export function LoginForm({
             });
 
             if (res.data.success) {
-                const { token, user } = res.data.data;
+                const { accessToken, refreshToken, user } = res.data.data;
 
-                if (token && user) {
-                    AuthHelper.setAuth(token, user);
+                if (accessToken && refreshToken && user) {
+                    AuthHelper.setAuth(accessToken, refreshToken, user);
                     alert(res.data.message || "Google Auth Successful");
 
                     if (user.role === 'admin') {

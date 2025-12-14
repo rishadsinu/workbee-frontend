@@ -1,22 +1,105 @@
-const TOKEN = "token";
+// const TOKEN = "token";
+// const USER = "user";
+// const USER_ID = "userId";
+
+// export const AuthHelper = {
+//   // Save token, user, and userId
+//   setAuth(token: string, user: any) {
+//     localStorage.setItem(TOKEN, token);
+//     localStorage.setItem(USER, JSON.stringify(user));
+//     localStorage.setItem(USER_ID, user._id || user.id);
+//   },
+
+//   // Token methods
+//   getToken() {
+//     return localStorage.getItem(TOKEN);
+//   },
+
+//   setToken(token: string) {
+//     localStorage.setItem(TOKEN, token);
+//   },
+
+//   // User methods
+//   getUser() {
+//     const stored = localStorage.getItem(USER);
+//     return stored ? JSON.parse(stored) : null;
+//   },
+
+//   setUser(user: any) {
+//     localStorage.setItem(USER, JSON.stringify(user));
+//   },
+
+//   // User ID methods
+//   getUserId() {
+//     return localStorage.getItem(USER_ID);
+//   },
+
+//   setUserId(id: string) {
+//     localStorage.setItem(USER_ID, id);
+//   },
+
+//   // Role check (based on user object)
+//   getUserRole() {
+//     const user = this.getUser();
+//     return user?.role || null;
+//   },
+
+//   isAdmin() {
+//     return this.getUserRole() === "admin";
+//   },
+
+//   isUser() {
+//     return this.getUserRole() === "user";
+//   },
+
+//   isWorker() {
+//     return this.getUserRole() === "worker";
+//   },
+
+//   // Clear all
+//   clearAuth() {
+//     localStorage.removeItem(TOKEN);
+//     localStorage.removeItem(USER);
+//     localStorage.removeItem(USER_ID);
+//   },
+
+//   // Auth check
+//   isLoggedIn() {
+//     return !!localStorage.getItem(TOKEN);
+//   }
+// };
+
+
+const ACCESS_TOKEN = "accessToken";
+const REFRESH_TOKEN = "refreshToken";
 const USER = "user";
 const USER_ID = "userId";
 
 export const AuthHelper = {
-  // Save token, user, and userId
-  setAuth(token: string, user: any) {
-    localStorage.setItem(TOKEN, token);
+  // Save tokens, user, and userId
+  setAuth(accessToken: string, refreshToken: string, user: any) {
+    localStorage.setItem(ACCESS_TOKEN, accessToken);
+    localStorage.setItem(REFRESH_TOKEN, refreshToken);
     localStorage.setItem(USER, JSON.stringify(user));
     localStorage.setItem(USER_ID, user._id || user.id);
   },
 
-  // Token methods
-  getToken() {
-    return localStorage.getItem(TOKEN);
+  // Access Token methods
+  getAccessToken() {
+    return localStorage.getItem(ACCESS_TOKEN);
   },
 
-  setToken(token: string) {
-    localStorage.setItem(TOKEN, token);
+  setAccessToken(token: string) {
+    localStorage.setItem(ACCESS_TOKEN, token);
+  },
+
+  // Refresh Token methods
+  getRefreshToken() {
+    return localStorage.getItem(REFRESH_TOKEN);
+  },
+
+  setRefreshToken(token: string) {
+    localStorage.setItem(REFRESH_TOKEN, token);
   },
 
   // User methods
@@ -58,13 +141,14 @@ export const AuthHelper = {
 
   // Clear all
   clearAuth() {
-    localStorage.removeItem(TOKEN);
+    localStorage.removeItem(ACCESS_TOKEN);
+    localStorage.removeItem(REFRESH_TOKEN);
     localStorage.removeItem(USER);
     localStorage.removeItem(USER_ID);
   },
 
   // Auth check
   isLoggedIn() {
-    return !!localStorage.getItem(TOKEN);
+    return !!localStorage.getItem(ACCESS_TOKEN);
   }
 };

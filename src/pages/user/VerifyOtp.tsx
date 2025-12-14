@@ -19,8 +19,11 @@ const VerifyOtp = () => {
       const res = await AuthService.verifyOtp({ userId, otp });
 
       if (res.data.success) {
-        AuthHelper.setToken(res.data.data.token);
-        alert(res.data.message);
+        const { accessToken, refreshToken, user } = res.data.data;
+        
+        AuthHelper.setAuth(accessToken, refreshToken, user);
+        
+        alert(res.data.message || 'OTP verified successfully');
         navigate('/');
       } else {
         alert(res.data.message || 'OTP verification failed');

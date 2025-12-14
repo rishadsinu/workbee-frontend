@@ -26,37 +26,43 @@ export function LoginForm({
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false)
-  const navigate = useNavigate()
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
-  
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
 
     try {
       const res = await AuthService.adminLogin({ email, password });
 
-      const token = res.data.data?.token || res.data.token;
-      const adminUser = res.data.data?.user || res.data.user;
+      if (res.data.success) {
+        const { accessToken, refreshToken, user } = res.data.data;
 
-      if (token && adminUser) {
-        if (adminUser.role !== "admin") {
-          alert("Access denied. Admin privileges required.");
-          return;
+        if (accessToken && refreshToken && user) {
+          if (user.role !== "admin") {
+            alert("Access denied. Admin privileges required.");
+            return;
+          }
+
+          AuthHelper.setAuth(accessToken, refreshToken, user);
+          
+          alert(res.data.message || "Admin login successful");
+          navigate('/admin/dashboard');
+        } else {
+          alert('Login failed - Invalid response');
         }
-
-        AuthHelper.setAuth(token, adminUser);
-        alert("Admin login successful");
-        navigate('/admin/dashboard');
       } else {
-        alert('Login failed - no token received');
+        alert(res.data.message || 'Login failed');
       }
     } catch (err: any) {
       console.error('Admin login error:', err);
       alert(err.response?.data?.message || 'Login failed');
-    } 
-}
-
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -117,7 +123,9 @@ export function LoginForm({
               </Field>
 
               <Field>
-                <Button type="submit">Login</Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? "Logging in..." : "Login"}
+                </Button>
               </Field>
             </FieldGroup>
           </form>

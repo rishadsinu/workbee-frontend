@@ -32,6 +32,16 @@ export const AuthService = {
     // verify User
     verifyUser: () => api.get("/auth/verify"),
 
+    // refresh token
+    refreshToken: (refreshToken: string) => {
+        return api.post("/auth/refresh-token", { refreshToken });
+    },
+
+    // logout
+    logout: () => {
+        return api.post("/auth/logout");
+    },
+
 
     // google Auth
     googleAuthLogin: (data: { credential: string }) => {

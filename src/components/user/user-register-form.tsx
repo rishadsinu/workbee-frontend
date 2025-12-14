@@ -76,13 +76,12 @@ export function RegisterForm({
             });
 
             if (res.data.success) {
-                const { token, user } = res.data.data;
+                const { accessToken, refreshToken, user } = res.data.data;
 
-                if (token && user) {
-                    AuthHelper.setAuth(token, user);
+                if (accessToken && refreshToken && user) {
+                    AuthHelper.setAuth(accessToken, refreshToken, user);
                     alert(res.data.message || "Google Auth Successful");
 
-                    // Navigate based on role
                     if (user.role === 'admin') {
                         navigate('/admin/dashboard');
                     } else if (user.role === 'worker') {
