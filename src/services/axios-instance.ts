@@ -49,8 +49,20 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // If error is 401 and we haven't tried to refresh yet
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Handle both 401 and 403 errors (token expired/invalid)
+    if ((error.response?.status === 401 || error.response?.status === 403) && !originalRequest._retry) {
+      
+      // Check if error is specifically about invalid/expired token
+      const isTokenError = error.response?.data?.error?.includes('token') || 
+                          error.response?.data?.error?.includes('Token') ||
+                          error.response?.data?.message?.includes('token') ||
+                          error.response?.data?.message?.includes('Token');
+
+      if (!isTokenError) {
+        // Not a token error, just reject
+        return Promise.reject(error);
+      }
+
       if (isRefreshing) {
         // If already refreshing, queue this request
         return new Promise((resolve, reject) => {
@@ -69,18 +81,32 @@ api.interceptors.response.use(
       const refreshToken = AuthHelper.getRefreshToken();
 
       if (!refreshToken) {
+        console.log("No refresh token available, redirecting to login");
         AuthHelper.clearAuth();
-        window.location.href = "/login";
+        
+        // Get user role to redirect appropriately
+        const userRole = AuthHelper.getUserRole();
+        if (userRole === 'admin') {
+          window.location.href = "/admin";
+        } else if (userRole === 'worker') {
+          window.location.href = "/worker/worker-login";
+        } else {
+          window.location.href = "/login";
+        }
         return Promise.reject(error);
       }
 
       try {
+        console.log("Access token expired, refreshing...");
+        
         // Call refresh token endpoint
         const response = await axios.post(`${baseURL}/auth/refresh-token`, {
           refreshToken
         });
 
         const { accessToken, refreshToken: newRefreshToken } = response.data.data;
+
+        console.log("Token refreshed successfully");
 
         // Update tokens
         AuthHelper.setAccessToken(accessToken);
@@ -94,10 +120,24 @@ api.interceptors.response.use(
 
         // Retry original request
         return api(originalRequest);
-      } catch (refreshError) {
+      } catch (refreshError: any) {
+        console.error("Token refresh failed:", refreshError);
         processQueue(refreshError, null);
+        
+        // Get user role before clearing auth
+        const userRole = AuthHelper.getUserRole();
+        
         AuthHelper.clearAuth();
-        window.location.href = "/login";
+        
+        // Redirect based on role
+        if (userRole === 'admin') {
+          window.location.href = "/admin";
+        } else if (userRole === 'worker') {
+          window.location.href = "/worker/worker-login";
+        } else {
+          window.location.href = "/login";
+        }
+        
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

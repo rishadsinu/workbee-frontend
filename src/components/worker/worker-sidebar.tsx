@@ -100,7 +100,7 @@ const WorkerSidebar = () => {
             </SidebarContent>
             <SidebarFooter>
                 <NavUser user={{
-                    name: "Profile",
+                    name: "Worker",
                     email: "No email provided",
                     avatar: "https://api.dicebear.com/9.x/adventurer/svg?seed=Sophia",
                 }} />

@@ -1,13 +1,21 @@
+import { AuthService } from "@/services/auth-service";
 import { AuthHelper } from "@/utils/auth-helper";
 import { useNavigate } from "react-router-dom";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
 
-  const logout = () => {
-    AuthHelper.clearAuth()
+
+  const logout = async () => {
+  try {
+    await AuthService.logout();
+  } catch (err) {
+    console.error(err);
+  } finally {
+    AuthHelper.clearAuth();
     navigate("/admin");
-  };
+  }
+};
 
   return (
     <div>
