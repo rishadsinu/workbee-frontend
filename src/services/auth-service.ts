@@ -14,6 +14,11 @@ export const AuthService = {
         return api.post("/auth/verifyOtp", data);
     },
 
+    // resent otp
+    resendOtp: (data: { userId: string }) => {
+        return api.post("/auth/resend-otp", data)
+    },
+
     // login
     login: (data: { email: string, password: string }) => {
         return api.post("/auth/login", data)

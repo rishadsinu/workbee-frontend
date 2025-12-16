@@ -159,6 +159,7 @@ const Users = () => {
         setIsModalOpen(false);
         fetchUsers();
       }
+      
     } catch (error: any) {
       alert("Error occurred while blocking user");
     }

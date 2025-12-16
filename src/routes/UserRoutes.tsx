@@ -12,7 +12,7 @@ import Dashboard from "@/pages/user/UserDashboard";
 
 // inner dashboard components
 import DashboardHome from "@/components/user/dashboard/DashboardHome";
-import MyWorks from "@/components/user/dashboard/MyWorks";
+import MyWorks from "@/components/user/my-works/components/work-content";
 
 const UserRoute = () => {
   return (
