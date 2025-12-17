@@ -106,6 +106,29 @@ const Badge = ({
     )
 }
 
+// Simple Select Component
+const Select = ({
+    value,
+    onChange,
+    children,
+    className = ""
+}: {
+    value: string;
+    onChange: (value: string) => void;
+    children: React.ReactNode;
+    className?: string;
+}) => {
+    return (
+        <select
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className={`h-10 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-500 ${className}`}
+        >
+            {children}
+        </select>
+    );
+};
+
 // Modal Component
 const Modal = ({
     isOpen,
@@ -168,10 +191,9 @@ const Modal = ({
                                 <span
                                     className={`
                                         inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium
-                                        ${
-                                            applier.isBlocked
-                                                ? "bg-red-100/80 text-red-700 border border-red-200"
-                                                : "bg-green-100/80 text-green-700 border border-green-200"
+                                        ${applier.isBlocked
+                                            ? "bg-red-100/80 text-red-700 border border-red-200"
+                                            : "bg-green-100/80 text-green-700 border border-green-200"
                                         }
                                     `}
                                 >
@@ -237,6 +259,7 @@ export default function WorkersManagementComponent() {
     const [selectedApplier, setSelectedApplier] = useState<Applier | null>(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [searchTerm, setSearchTerm] = useState("")
+    const [statusFilter, setStatusFilter] = useState("all")
     const [debouncedSearch, setDebouncedSearch] = useState("")
     const [currentPage, setCurrentPage] = useState(1)
     const [itemsPerPage] = useState(10)
@@ -251,19 +274,20 @@ export default function WorkersManagementComponent() {
         return () => clearTimeout(timer)
     }, [searchTerm])
 
-    // Reset to first page when debounced search changes
+    // Reset to first page when debounced search or status filter changes
     useEffect(() => {
         setCurrentPage(1)
-    }, [debouncedSearch])
+    }, [debouncedSearch, statusFilter])
 
-    // Fetch workers with server-side pagination and search
+    // Fetch workers with server-side pagination, search, and status filter
     const getAllWorkers = async () => {
         try {
             setLoading(true)
             const response = await WorkService.getAllWorkers(
                 currentPage,
                 itemsPerPage,
-                debouncedSearch
+                debouncedSearch,
+                statusFilter
             )
 
             if (response.data.success) {
@@ -280,10 +304,10 @@ export default function WorkersManagementComponent() {
         }
     }
 
-    // Fetch workers when page or debounced search changes
+    // Fetch workers when page, debounced search, or status filter changes
     useEffect(() => {
         getAllWorkers()
-    }, [currentPage, debouncedSearch])
+    }, [currentPage, debouncedSearch, statusFilter])
 
     const handleBlockUnblock = async (workerId: string) => {
         if (!workerId) {
@@ -314,6 +338,11 @@ export default function WorkersManagementComponent() {
         setCurrentPage(newPage)
     }
 
+    const handleReset = () => {
+        setSearchTerm("")
+        setStatusFilter("all")
+    }
+
     if (loading && workers.length === 0) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-gray-50">
@@ -329,32 +358,50 @@ export default function WorkersManagementComponent() {
         <div className="min-h-screen bg-gray-50">
             <div className="max-w-7xl mx-auto">
                 <div className="bg-white rounded-lg shadow">
-                    <div className="p-4 border-b flex items-center justify-between flex-wrap gap-4">
-                        <div className="relative flex-1 max-w-sm">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                            <Input
-                                placeholder="Search by name, email, phone..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-9"
-                            />
-                            {/* Loading spinner inside input */}
-                            {loading && searchTerm && (
-                                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                                    <div className="w-4 h-4 border-2 border-gray-600 border-t-transparent rounded-full animate-spin"></div>
-                                </div>
+                    <div className="p-4 border-b">
+                        <div className="flex items-center gap-3">
+                            {/* Search Bar */}
+                            <div className="relative flex-1 min-w-[200px] max-w-sm">
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                <Input
+                                    placeholder="Search by name, email, phone..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="pl-9"
+                                />
+                                {/* Loading spinner inside input */}
+                                {loading && searchTerm && (
+                                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                        <div className="w-4 h-4 border-2 border-gray-600 border-t-transparent rounded-full animate-spin"></div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Status Filter - immediately next to search */}
+                            <Select
+                                value={statusFilter}
+                                onChange={setStatusFilter}
+                                className="w-[130px] flex-shrink-0"
+                            >
+                                <option value="all">Status</option>
+                                <option value="active">Active</option>
+                                <option value="blocked">Blocked</option>
+                            </Select>
+
+                            {/* Reset Button - next to filter */}
+                            {(searchTerm || statusFilter !== "all") && (
+                                <Button
+                                    variant="ghost"
+                                    onClick={handleReset}
+                                    size="sm"
+                                    className="flex-shrink-0"
+                                >
+                                    Reset
+                                </Button>
                             )}
                         </div>
-                        {searchTerm && (
-                            <Button
-                                variant="ghost"
-                                onClick={() => setSearchTerm("")}
-                                size="sm"
-                            >
-                                Reset
-                            </Button>
-                        )}
                     </div>
+
 
                     <div className="overflow-x-auto">
                         <table className="w-full">
@@ -397,10 +444,9 @@ export default function WorkersManagementComponent() {
                                                 <span
                                                     className={`
                                                         inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
-                                                        ${
-                                                            worker.isBlocked
-                                                                ? "bg-red-100/80 text-red-700 border border-red-200"
-                                                                : "bg-green-100/80 text-green-700 border border-green-200"
+                                                        ${worker.isBlocked
+                                                            ? "bg-red-100/80 text-red-700 border border-red-200"
+                                                            : "bg-green-100/80 text-green-700 border border-green-200"
                                                         }
                                                     `}
                                                 >

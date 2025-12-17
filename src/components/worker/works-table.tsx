@@ -572,8 +572,8 @@ export default function WorkerWorksTable() {
       const response = await WorkService.getAllWorks(filters)
 
       if (response.data.success) {
-        const worksData = response.data.data
-        const paginationData = response.data.pagination
+        const worksData = response.data.data.works
+        const paginationData = response.data.data.pagination
 
         const worksArray = Array.isArray(worksData) ? worksData : []
         setWorks(worksArray)

@@ -30,6 +30,36 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+// Select component (inline)
+const Select = ({ 
+  value, 
+  onValueChange, 
+  children 
+}: { 
+  value: string; 
+  onValueChange: (value: string) => void; 
+  children: React.ReactNode 
+}) => {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onValueChange(e.target.value)}
+      className="h-8 w-[130px] rounded-md border border-gray-300 bg-white px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-gray-500"
+    >
+      {children}
+    </select>
+  );
+};
+
+const SelectItem = ({ 
+  value, 
+  children 
+}: { 
+  value: string; 
+  children: React.ReactNode 
+}) => {
+  return <option value={value}>{children}</option>;
+};
 import { AuthService } from "@/services/auth-service";
 import { useDebounce } from "@/hooks/useDebounce";
 
@@ -50,6 +80,8 @@ interface UserDataTableToolbarProps {
   table: ReturnType<typeof useReactTable<User>>;
   searchValue: string;
   onSearchChange: (value: string) => void;
+  statusFilter: string;
+  onStatusFilterChange: (value: string) => void;
   isLoading?: boolean;
 }
 
@@ -58,9 +90,11 @@ function UserDataTableToolbar({
   table,
   searchValue,
   onSearchChange,
+  statusFilter,
+  onStatusFilterChange,
   isLoading = false,
 }: UserDataTableToolbarProps) {
-  const isFiltered = searchValue !== "";
+  const isFiltered = searchValue !== "" || statusFilter !== "all";
 
   return (
     <div className="flex items-center justify-between mb-4">
@@ -79,10 +113,21 @@ function UserDataTableToolbar({
             </div>
           )}
         </div>
+
+        {/* Status Filter */}
+        <Select value={statusFilter} onValueChange={onStatusFilterChange}>
+          <SelectItem value="all">Status</SelectItem>
+          <SelectItem value="active">Active</SelectItem>
+          <SelectItem value="blocked">Blocked</SelectItem>
+        </Select>
+
         {isFiltered && (
           <Button
             variant="ghost"
-            onClick={() => onSearchChange("")}
+            onClick={() => {
+              onSearchChange("");
+              onStatusFilterChange("all");
+            }}
             className="h-8 px-2 lg:px-3"
           >
             Reset
@@ -99,6 +144,7 @@ const Users = () => {
   const [totalUsers, setTotalUsers] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [searchValue, setSearchValue] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFiltersState] = useState<ColumnFiltersState>([]);
   const [pagination, setPagination] = useState<PaginationState>({
@@ -112,14 +158,15 @@ const Users = () => {
   // Use your custom debounce hook
   const debouncedSearch = useDebounce(searchValue, 500);
 
-  // Fetch users with server-side pagination and search
+  // Fetch users with server-side pagination, search, and status filter
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
       const res = await AuthService.getUsers(
         pagination.pageIndex + 1,
         pagination.pageSize,
-        debouncedSearch
+        debouncedSearch,
+        statusFilter // Pass status filter to backend
       );
 
       setUsers(res.data.data.users);
@@ -132,19 +179,24 @@ const Users = () => {
     }
   };
 
-  // Reset to first page when debounced search changes
+  // Reset to first page when debounced search or status filter changes
   useEffect(() => {
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-  }, [debouncedSearch]);
+  }, [debouncedSearch, statusFilter]);
 
-  // Fetch users when pagination or debounced search changes
+  // Fetch users when pagination, debounced search, or status filter changes
   useEffect(() => {
     fetchUsers();
-  }, [pagination.pageIndex, pagination.pageSize, debouncedSearch]);
+  }, [pagination.pageIndex, pagination.pageSize, debouncedSearch, statusFilter]);
 
   // Handle search change
   const handleSearchChange = (value: string) => {
     setSearchValue(value);
+  };
+
+  // Handle status filter change
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value);
   };
 
   // Block/Unblock user
@@ -244,6 +296,8 @@ const Users = () => {
         table={table}
         searchValue={searchValue}
         onSearchChange={handleSearchChange}
+        statusFilter={statusFilter}
+        onStatusFilterChange={handleStatusFilterChange}
         isLoading={isLoading}
       />
 

@@ -8,17 +8,22 @@ export const WorkService = {
         });
     },
 
-    approveWorkerApplication: (data: { 
-        workerId: string | undefined; 
+    approveWorkerApplication: (data: {
+        workerId: string | undefined;
         status: "approved" | "rejected";
-        rejectionReason?: string; 
+        rejectionReason?: string;
     }) => {
         return api.post("/work/approve-worker", data)
     },
 
-    getAllWorkers: (page: number, limit: number, search: string) => {
+    getAllWorkers: (page: number, limit: number, search: string, status?: string) => {
         return api.get("/work/get-workers", {
-            params: { page, limit, search }
+            params: {
+                page,
+                limit,
+                search,
+                status: status && status !== 'all' ? status : undefined
+            }
         });
     },
 
@@ -68,7 +73,7 @@ export const WorkService = {
         return api.put(`/work/update-work/${workId}`, workData);
     },
 
-    deleteMyWork:(workId:string) => {
+    deleteMyWork: (workId: string) => {
         return api.delete(`/work/delete-my-work/${workId}`)
     }
 }

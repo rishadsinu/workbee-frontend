@@ -26,7 +26,7 @@ export const AuthService = {
 
     // forgot Password
     forgotPassword: (data: { email: string }) => {
-        return api.post("/auth/forget-password", data)
+        return api.post("/auth/forgot-password", data)
     },
 
     // reset Password
@@ -61,9 +61,15 @@ export const AuthService = {
         return api.post("/auth/admin/login", data)
     },
 
-    getUsers: (page: number, limit: number, search: string) => {
+    // get users
+    getUsers: (page: number, limit: number, search: string, status?: string) => {
         return api.get("/auth/admin/get-users", {
-            params: { page, limit, search }
+            params: {
+                page,
+                limit,
+                search,
+                status: status && status !== 'all' ? status : undefined
+            }
         });
     },
 
