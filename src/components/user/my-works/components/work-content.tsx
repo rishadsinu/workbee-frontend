@@ -1,6 +1,6 @@
 import { WorkService } from "@/services/work-service";
 import { useEffect, useState } from "react";
-import { Edit, Trash2, Calendar, DollarSign, MapPin, Briefcase } from "lucide-react";
+import { Edit, Trash2, Calendar, MapPin, Briefcase, IndianRupeeIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,9 +25,6 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-
-
-
 interface Work {
     id: string;
     userId: string;
@@ -51,9 +48,6 @@ interface Work {
     updatedAt?: Date;
 }
 
-
-
-
 interface EditModalProps {
     work: Work;
     isOpen: boolean;
@@ -61,22 +55,13 @@ interface EditModalProps {
     onUpdate: (updatedWork: Work) => void;
 }
 
-
-
-
 function EditModal({ work, isOpen, onClose, onUpdate }: EditModalProps) {
     const [formData, setFormData] = useState<Work>(work);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-
-
-
     useEffect(() => {
         setFormData(work);
     }, [work]);
-
-
-
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -86,15 +71,9 @@ function EditModal({ work, isOpen, onClose, onUpdate }: EditModalProps) {
         }));
     };
 
-
-
-
     const handleSelectChange = (value: string) => {
         setFormData(prev => ({ ...prev, status: value }));
     };
-
-
-
 
     const handleSubmit = async () => {
         if (!formData.workTitle || !formData.workCategory || !formData.workType) {
@@ -102,19 +81,10 @@ function EditModal({ work, isOpen, onClose, onUpdate }: EditModalProps) {
             return;
         }
 
-
-
-
         setIsSubmitting(true);
-
-
-
 
         try {
             const response = await WorkService.updateWork(formData.id, formData);
-
-
-
 
             if (response.data.success) {
                 onUpdate(formData);
@@ -131,24 +101,15 @@ function EditModal({ work, isOpen, onClose, onUpdate }: EditModalProps) {
         }
     };
 
-
-
-
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-w-full sm:max-w-4xl md:max-w-5xl max-h-[90vh] overflow-y-auto">
-
-
-
                 <DialogHeader>
                     <DialogTitle>Edit Work</DialogTitle>
                     <DialogDescription>
                         Update your work details below.
                     </DialogDescription>
                 </DialogHeader>
-
-
-
 
                 <div className="space-y-4 py-4">
                     <div className="space-y-2">
@@ -162,9 +123,6 @@ function EditModal({ work, isOpen, onClose, onUpdate }: EditModalProps) {
                         />
                     </div>
 
-
-
-
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div className="space-y-2">
                             <Label htmlFor="workCategory">Category *</Label>
@@ -176,9 +134,6 @@ function EditModal({ work, isOpen, onClose, onUpdate }: EditModalProps) {
                                 required
                             />
                         </div>
-
-
-
 
                         <div className="space-y-2">
                             <Label htmlFor="workType">Type *</Label>
@@ -192,9 +147,6 @@ function EditModal({ work, isOpen, onClose, onUpdate }: EditModalProps) {
                         </div>
                     </div>
 
-
-
-
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div className="space-y-2">
                             <Label htmlFor="startDate">Start Date</Label>
@@ -206,9 +158,6 @@ function EditModal({ work, isOpen, onClose, onUpdate }: EditModalProps) {
                                 onChange={handleChange}
                             />
                         </div>
-
-
-
 
                         <div className="space-y-2">
                             <Label htmlFor="endDate">End Date</Label>
@@ -222,12 +171,9 @@ function EditModal({ work, isOpen, onClose, onUpdate }: EditModalProps) {
                         </div>
                     </div>
 
-
-
-
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div className="space-y-2">
-                            <Label htmlFor="budget">Budget ($)</Label>
+                            <Label htmlFor="budget">Budget (₹)</Label>
                             <Input
                                 id="budget"
                                 name="budget"
@@ -238,9 +184,6 @@ function EditModal({ work, isOpen, onClose, onUpdate }: EditModalProps) {
                                 step="0.01"
                             />
                         </div>
-
-
-
 
                         <div className="space-y-2">
                             <Label htmlFor="status">Status</Label>
@@ -258,9 +201,6 @@ function EditModal({ work, isOpen, onClose, onUpdate }: EditModalProps) {
                         </div>
                     </div>
 
-
-
-
                     <div className="space-y-2">
                         <Label htmlFor="description">Description</Label>
                         <Textarea
@@ -272,9 +212,6 @@ function EditModal({ work, isOpen, onClose, onUpdate }: EditModalProps) {
                         />
                     </div>
 
-
-
-
                     <div className="space-y-2">
                         <Label htmlFor="manualAddress">Address</Label>
                         <Input
@@ -284,9 +221,6 @@ function EditModal({ work, isOpen, onClose, onUpdate }: EditModalProps) {
                             onChange={handleChange}
                         />
                     </div>
-
-
-
 
                     <div className="space-y-2">
                         <Label htmlFor="landmark">Landmark</Label>
@@ -298,9 +232,6 @@ function EditModal({ work, isOpen, onClose, onUpdate }: EditModalProps) {
                         />
                     </div>
                 </div>
-
-
-
 
                 <DialogFooter>
                     <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
@@ -315,8 +246,116 @@ function EditModal({ work, isOpen, onClose, onUpdate }: EditModalProps) {
     );
 }
 
+// Reusable Work Card Component
+interface WorkCardProps {
+    work: Work;
+    onEdit: (work: Work) => void;
+    onDelete: (workId: string) => void;
+    getStatusColor: (status?: string) => string;
+}
 
+function WorkCard({ work, onEdit, onDelete, getStatusColor }: WorkCardProps) {
+    return (
+        <Card className="w-full h-auto">
+            <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                        <CardTitle className="text-2xl">{work.workTitle}</CardTitle>
+                        <CardDescription>
+                            <div className="flex items-center gap-2 mt-2">
+                                <Badge variant="outline">
+                                    <Briefcase className="mr-1 h-3 w-3" />
+                                    {work.workCategory}
+                                </Badge>
+                                <Badge variant="outline">{work.workType}</Badge>
+                                {work.status && (
+                                    <Badge variant="outline" className={getStatusColor(work.status)}>
+                                        {work.status}
+                                    </Badge>
+                                )}
+                            </div>
+                        </CardDescription>
+                    </div>
+                </div>
+            </CardHeader>
 
+            <CardContent className="space-y-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    {work.startDate && (
+                        <div className="flex items-center gap-2 text-sm">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-muted-foreground">Start:</span>
+                            <span>{new Date(work.startDate).toLocaleDateString()}</span>
+                        </div>
+                    )}
+
+                    {work.endDate && (
+                        <div className="flex items-center gap-2 text-sm">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-muted-foreground">End:</span>
+                            <span>{new Date(work.endDate).toLocaleDateString()}</span>
+                        </div>
+                    )}
+
+                    {work.budget && (
+                        <div className="flex items-center gap-2 text-sm">
+                            <IndianRupeeIcon className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-muted-foreground">Budget:</span>
+                            <span className="font-semibold">₹{work.budget}</span>
+                        </div>
+                    )}
+                </div>
+
+                {(work.description || work.manualAddress || work.landmark) && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                        {work.description && (
+                            <div className="space-y-1">
+                                <Label className="text-sm font-medium">Description</Label>
+                                <p className="text-sm text-muted-foreground">{work.description}</p>
+                            </div>
+                        )}
+
+                        {(work.manualAddress || work.landmark) && (
+                            <div className="space-y-2">
+                                {work.manualAddress && (
+                                    <div className="flex items-start gap-2 text-sm">
+                                        <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                        <div>
+                                            <span className="text-muted-foreground">Address: </span>
+                                            <span>{work.manualAddress}</span>
+                                        </div>
+                                    </div>
+                                )}
+                                {work.landmark && (
+                                    <div className="flex items-start gap-2 text-sm">
+                                        <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                        <div>
+                                            <span className="text-muted-foreground">Landmark: </span>
+                                            <span>{work.landmark}</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                <Separator className="my-2" />
+
+                <div className="flex gap-2 pt-1">
+                    <Button variant="outline" onClick={() => onEdit(work)}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit
+                    </Button>
+                    <Button onClick={() => onDelete(work.id)}>
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete
+                    </Button>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
 
 export default function WorkContent() {
     const [works, setWorksData] = useState<Work[]>([]);
@@ -325,21 +364,12 @@ export default function WorkContent() {
     const [editingWork, setEditingWork] = useState<Work | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-
-
-
     const getAllWorks = async () => {
         try {
             setLoading(true);
             setError(null);
 
-
-
-
             const res = await WorkService.getMyWorks();
-
-
-
 
             if (res.data.success) {
                 setWorksData(res.data.data.works || []);
@@ -354,31 +384,19 @@ export default function WorkContent() {
         }
     };
 
-
-
-
     useEffect(() => {
         getAllWorks();
     }, []);
-
-
-
 
     const handleEdit = (work: Work) => {
         setEditingWork(work);
         setIsModalOpen(true);
     };
 
-
-
-
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setEditingWork(null);
     };
-
-
-
 
     const handleUpdate = (updatedWork: Work) => {
         setWorksData(prevWorks =>
@@ -388,20 +406,12 @@ export default function WorkContent() {
         );
     };
 
-
-
-
     const handleDelete = async (workId: string) => {
         const confirmDelete = window.confirm("Are you sure you want to delete this work?");
         if (!confirmDelete) return;
 
-
-
         try {
             const res = await WorkService.deleteMyWork(workId);
-
-
-
 
             if (res.data.success) {
                 alert("Deleted successfully");
@@ -414,9 +424,6 @@ export default function WorkContent() {
             alert(error.response?.data?.message || "Error while deleting work");
         }
     };
-
-
-
 
     const getStatusColor = (status?: string) => {
         switch (status) {
@@ -433,8 +440,11 @@ export default function WorkContent() {
         }
     };
 
-
-
+    // Filter works by status
+    const filterWorksByStatus = (status?: string) => {
+        if (!status) return works;
+        return works.filter(work => work.status === status);
+    };
 
     if (loading) {
         return (
@@ -443,9 +453,6 @@ export default function WorkContent() {
             </div>
         );
     }
-
-
-
 
     if (!works || works.length === 0) {
         return (
@@ -460,123 +467,24 @@ export default function WorkContent() {
         );
     }
 
-
-
-    // Render the works list
-    const WorksList = () => (
+    // Reusable Works List Component
+    const WorksList = ({ filteredWorks }: { filteredWorks: Work[] }) => (
         <div className="grid gap-4 w-full">
-            {works.map((work) => (
-                <Card key={work.id} className="w-full h-auto">
-                    <CardHeader className="pb-3">
-                        <div className="flex items-start justify-between">
-                            <div className="space-y-1">
-                                <CardTitle className="text-2xl">{work.workTitle}</CardTitle>
-                                <CardDescription>
-                                    <div className="flex items-center gap-2 mt-2">
-                                        <Badge variant="outline">
-                                            <Briefcase className="mr-1 h-3 w-3" />
-                                            {work.workCategory}
-                                        </Badge>
-                                        <Badge variant="outline">{work.workType}</Badge>
-                                        {work.status && (
-                                            <Badge variant="outline" className={getStatusColor(work.status)}>
-                                                {work.status}
-                                            </Badge>
-                                        )}
-                                    </div>
-                                </CardDescription>
-                            </div>
-                        </div>
-                    </CardHeader>
-
-
-
-                    <CardContent className="space-y-3">
-                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                            {work.startDate && (
-                                <div className="flex items-center gap-2 text-sm">
-                                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                                    <span className="text-muted-foreground">Start:</span>
-                                    <span>{new Date(work.startDate).toLocaleDateString()}</span>
-                                </div>
-                            )}
-
-
-                            {work.endDate && (
-                                <div className="flex items-center gap-2 text-sm">
-                                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                                    <span className="text-muted-foreground">End:</span>
-                                    <span>{new Date(work.endDate).toLocaleDateString()}</span>
-                                </div>
-                            )}
-
-
-                            {work.budget && (
-                                <div className="flex items-center gap-2 text-sm">
-                                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                                    <span className="text-muted-foreground">Budget:</span>
-                                    <span className="font-semibold">${work.budget}</span>
-                                </div>
-                            )}
-                        </div>
-
-
-                        {(work.description || work.manualAddress || work.landmark) && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                                {work.description && (
-                                    <div className="space-y-1">
-                                        <Label className="text-sm font-medium">Description</Label>
-                                        <p className="text-sm text-muted-foreground">{work.description}</p>
-                                    </div>
-                                )}
-
-
-                                {(work.manualAddress || work.landmark) && (
-                                    <div className="space-y-2">
-                                        {work.manualAddress && (
-                                            <div className="flex items-start gap-2 text-sm">
-                                                <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                                                <div>
-                                                    <span className="text-muted-foreground">Address: </span>
-                                                    <span>{work.manualAddress}</span>
-                                                </div>
-                                            </div>
-                                        )}
-                                        {work.landmark && (
-                                            <div className="flex items-start gap-2 text-sm">
-                                                <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                                                <div>
-                                                    <span className="text-muted-foreground">Landmark: </span>
-                                                    <span>{work.landmark}</span>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-
-                        <Separator className="my-2" />
-
-
-                        <div className="flex gap-2 pt-1">
-                            <Button variant="outline" onClick={() => handleEdit(work)}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit
-                            </Button>
-                            <Button onClick={() => handleDelete(work.id)}>
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
-            ))}
+            {filteredWorks.length > 0 ? (
+                filteredWorks.map((work) => (
+                    <WorkCard
+                        key={work.id}
+                        work={work}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                        getStatusColor={getStatusColor}
+                    />
+                ))
+            ) : (
+                <p className="text-muted-foreground text-center py-8">No works found.</p>
+            )}
         </div>
     );
-
-
 
     return (
         <div className="space-y-6 w-full">
@@ -587,82 +495,30 @@ export default function WorkContent() {
                 </p>
             </div>
 
-
             <Tabs defaultValue="all" className="space-y-6 w-full">
                 <TabsList className="grid w-full grid-cols-4">
-
                     <TabsTrigger value="all">All Works</TabsTrigger>
                     <TabsTrigger value="active">Active</TabsTrigger>
                     <TabsTrigger value="completed">Completed</TabsTrigger>
                     <TabsTrigger value="pending">Pending</TabsTrigger>
                 </TabsList>
 
-
                 <TabsContent value="all" className="space-y-4">
-                    <WorksList />
+                    <WorksList filteredWorks={works} />
                 </TabsContent>
-
 
                 <TabsContent value="active" className="space-y-4">
-                    <div className="grid gap-4 w-full">
-                        {works.filter(work => work.status === 'active').length > 0 ? (
-                            works.filter(work => work.status === 'active').map((work) => (
-                                <Card key={work.id} className="w-full h-auto">
-                                    <CardHeader className="pb-3">
-                                        <CardTitle className="text-2xl">{work.workTitle}</CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <p className="text-muted-foreground">Active work content here...</p>
-                                    </CardContent>
-                                </Card>
-                            ))
-                        ) : (
-                            <p className="text-muted-foreground text-center py-8">No active works found.</p>
-                        )}
-                    </div>
+                    <WorksList filteredWorks={filterWorksByStatus('active')} />
                 </TabsContent>
-
 
                 <TabsContent value="completed" className="space-y-4">
-                    <div className="grid gap-4 w-full">
-                        {works.filter(work => work.status === 'completed').length > 0 ? (
-                            works.filter(work => work.status === 'completed').map((work) => (
-                                <Card key={work.id} className="w-full h-auto">
-                                    <CardHeader className="pb-3">
-                                        <CardTitle className="text-2xl">{work.workTitle}</CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <p className="text-muted-foreground">Completed work content here...</p>
-                                    </CardContent>
-                                </Card>
-                            ))
-                        ) : (
-                            <p className="text-muted-foreground text-center py-8">No completed works found.</p>
-                        )}
-                    </div>
+                    <WorksList filteredWorks={filterWorksByStatus('completed')} />
                 </TabsContent>
-
 
                 <TabsContent value="pending" className="space-y-4">
-                    <div className="grid gap-4 w-full">
-                        {works.filter(work => work.status === 'pending').length > 0 ? (
-                            works.filter(work => work.status === 'pending').map((work) => (
-                                <Card key={work.id} className="w-full h-auto">
-                                    <CardHeader className="pb-3">
-                                        <CardTitle className="text-2xl">{work.workTitle}</CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <p className="text-muted-foreground">Pending work content here...</p>
-                                    </CardContent>
-                                </Card>
-                            ))
-                        ) : (
-                            <p className="text-muted-foreground text-center py-8">No pending works found.</p>
-                        )}
-                    </div>
+                    <WorksList filteredWorks={filterWorksByStatus('pending')} />
                 </TabsContent>
             </Tabs>
-
 
             {editingWork && (
                 <EditModal
