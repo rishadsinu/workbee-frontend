@@ -6,6 +6,7 @@ import WorkerLayout from "@/layout/WorkerLayout";
 import WorkerDashboard from "@/pages/worker/WorkerDashboard";
 import WorkerLogin from "@/pages/worker/WorkerLogin";
 import Works from "@/pages/worker/Works";
+import ClientMessages from "@/components/worker/messages";
 
 const WorkerRoutes = () => {
     return (
@@ -25,6 +26,7 @@ const WorkerRoutes = () => {
             >
                 <Route index element={<WorkerDashboard/>} />
                 <Route path="works" element={<Works/>} />
+                <Route path="client-messages" element={<ClientMessages/>} />
             </Route>
         </Routes>
     )

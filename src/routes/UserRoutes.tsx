@@ -13,6 +13,7 @@ import Dashboard from "@/pages/user/UserDashboard";
 // inner dashboard components
 import DashboardHome from "@/components/user/dashboard/DashboardHome";
 import MyWorks from "@/components/user/dashboard/my-works/components/work-content";
+import WorkerMessages from "@/components/user/dashboard/messages/page";
 
 const UserRoute = () => {
   return (
@@ -45,6 +46,7 @@ const UserRoute = () => {
       >
         <Route index element={<DashboardHome />} />
         <Route path="works" element={<MyWorks />} />
+        <Route path="messages" element={<WorkerMessages />} />
       </Route>
     </Routes>
   );

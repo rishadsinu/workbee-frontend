@@ -63,7 +63,7 @@ const items = [
   },
   {
     title: "Messages",
-    route: "/workr/worker-dashboard/feedbacks",
+    route: "/worker/worker-dashboard/client-messages",
     icon: MessageSquare, 
   },
   {

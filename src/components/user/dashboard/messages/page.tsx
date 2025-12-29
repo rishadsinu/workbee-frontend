@@ -1,5 +1,5 @@
 
-export default function Messages(){
+export default function WorkerMessages(){
     return (
         <div>Messages</div>
     )
