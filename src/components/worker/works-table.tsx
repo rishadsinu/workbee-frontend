@@ -3,6 +3,9 @@ import { Eye, X, Search, MapPin, Calendar, Clock, Filter, IndianRupee, LocateIco
 import { WorkService } from "@/services/work-service"
 import { useDebounce } from "@/hooks/useDebounce"
 import axios from "axios"
+import { useNavigate } from "react-router-dom"
+import { ChatService } from "@/services/chat-service"
+import { AuthHelper } from "@/utils/auth-helper"
 
 // find current location through geocode
 const getPlaceFromCoordinates = async (longitude: number, latitude: number): Promise<string> => {
@@ -69,6 +72,7 @@ interface Work {
   landmark?: string
   place?: string
   contactNumber: string
+  userName?:string
   beforeImage?: string
   petrolAllowance?: string
   extraRequirements?: string
@@ -232,7 +236,37 @@ const WorkDetailsModal = ({
   placeName?: string
   distance?: number | null
 }) => {
+    const navigate = useNavigate();
+
   if (!isOpen || !work) return null
+
+  const handleChatWithClient = async () => {
+    try {
+      // Create or get existing chat with this client
+      const response = await ChatService.createChat({
+        userId: work.userId,  // The user who posted the work
+        workerId: AuthHelper.getUserId()!  // Current logged-in worker
+      });
+
+      const chat = response.data.data;
+
+      // Navigate to messages page with chat data and work context
+      navigate('/worker/worker-dashboard/client-messages', {
+        state: {
+          chatId: chat.id,
+          userId: work.userId,
+          workId: work.id,
+          workTitle: work.workTitle,
+          userName: work.userName || 'Client'  // If you have user name in work object
+        }
+      });
+
+      onClose();
+    } catch (error) {
+      console.error('Error creating chat:', error);
+      alert('Failed to start chat. Please try again.');
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -470,7 +504,8 @@ const WorkDetailsModal = ({
         <div className="sticky bottom-0 bg-white border-t px-6 py-4 flex justify-end gap-3 z-10">
           <Button variant="outline" onClick={onClose}>Close</Button>
           <Button variant="outline">Make an Offer</Button>
-          <Button variant="outline">Chat with Client</Button>
+          {/* <Button variant="outline">Chat with Client</Button> */}
+          <Button onClick={handleChatWithClient}>Chat with Client</Button>
         </div>
       </div>
     </div>
