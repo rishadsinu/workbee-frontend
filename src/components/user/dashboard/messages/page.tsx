@@ -1,10 +1,3 @@
-
-// export default function WorkerMessages(){
-//     return (
-//         <div>Messages</div>
-//     )
-// }
-
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { socketService } from '@/services/socket-service';

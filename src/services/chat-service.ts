@@ -1,5 +1,4 @@
 
-// src/services/
 import { api } from "./axios-instance";
 
 export const ChatService = {

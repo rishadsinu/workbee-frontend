@@ -244,8 +244,8 @@ const WorkDetailsModal = ({
     try {
       // Create or get existing chat with this client
       const response = await ChatService.createChat({
-        userId: work.userId,  // The user who posted the work
-        workerId: AuthHelper.getUserId()!  // Current logged-in worker
+        userId: work.userId,  
+        workerId: AuthHelper.getUserId()!  
       });
 
       const chat = response.data.data;
@@ -257,7 +257,7 @@ const WorkDetailsModal = ({
           userId: work.userId,
           workId: work.id,
           workTitle: work.workTitle,
-          userName: work.userName || 'Client'  // If you have user name in work object
+          userName: work.userName || 'Client'
         }
       });
 
@@ -504,8 +504,7 @@ const WorkDetailsModal = ({
         <div className="sticky bottom-0 bg-white border-t px-6 py-4 flex justify-end gap-3 z-10">
           <Button variant="outline" onClick={onClose}>Close</Button>
           <Button variant="outline">Make an Offer</Button>
-          {/* <Button variant="outline">Chat with Client</Button> */}
-          <Button onClick={handleChatWithClient}>Chat with Client</Button>
+          <Button variant="outline" onClick={handleChatWithClient}>Chat with Client</Button>
         </div>
       </div>
     </div>
