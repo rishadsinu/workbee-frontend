@@ -190,12 +190,9 @@ export default function ClientMessages() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-[calc(100vh-90px)] bg-gray-50">
       {/* Chat List Sidebar */}
       <div className="w-80 bg-white border-r flex flex-col">
-        <div className="p-4 border-b">
-          <h2 className="text-xl font-semibold">Client Messages</h2>
-        </div>
         
         <div className="flex-1 overflow-y-auto">
           {chats.length === 0 ? (
@@ -299,7 +296,7 @@ export default function ClientMessages() {
                       <div
                         className={`max-w-md px-4 py-2 rounded-lg ${
                           isSent
-                            ? 'bg-blue-600 text-white'
+                            ? 'bg-black text-white'
                             : 'bg-white text-gray-900 border'
                         }`}
                       >
@@ -346,12 +343,12 @@ export default function ClientMessages() {
                   onChange={(e) => handleTyping(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                   placeholder="Type a message..."
-                  className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
                 />
                 <button
                   onClick={handleSendMessage}
                   disabled={!newMessage.trim()}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-6 py-2 bg-black text-white rounded-lg hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   <Send className="w-4 h-4" />
                   Send
