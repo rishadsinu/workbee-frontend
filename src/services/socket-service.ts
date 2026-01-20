@@ -1,4 +1,3 @@
-// frontend/services/socket-service.ts
 import { io, Socket } from 'socket.io-client';
 
 class SocketService {

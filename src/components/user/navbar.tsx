@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Sun } from "lucide-react";
+import { Bell, Sun } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AuthService } from "@/services/auth-service";
 import ProfileDropDownMenu from "./profile-drop-down";
@@ -33,7 +33,7 @@ const Navbar = () => {
           const loggedUser = res.data.data;
 
           setUser(loggedUser);
-          
+
           AuthHelper.setUser(loggedUser);
           AuthHelper.setUserId(loggedUser._id || loggedUser.id);
         } else {
@@ -82,7 +82,7 @@ const Navbar = () => {
             </button>
           </li>
 
-          
+
           <li>
             <button
               onClick={() => {
@@ -119,9 +119,20 @@ const Navbar = () => {
             <Sun className="w-5 h-5" />
           </button>
 
+
+
           {user ? (
-            <ProfileDropDownMenu user={user} onLogout={handleLogout} />
+            <div className="flex items-center space-x-3">
+              {/* Notification Icon */}
+              <button className="p-2 rounded-full border hover:bg-gray-100 transition">
+                <Bell className="w-5 h-5" />
+              </button>
+
+              {/* Profile Dropdown */}
+              <ProfileDropDownMenu user={user} onLogout={handleLogout} />
+            </div>
           ) : (
+
             <Button
               onClick={() => handleNavigation("/login")}
               className="rounded-full px-5"
