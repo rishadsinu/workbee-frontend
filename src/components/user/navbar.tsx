@@ -1,10 +1,165 @@
+// import { useState, useEffect } from "react";
+// import { Button } from "@/components/ui/button";
+// import { Bell, Sun } from "lucide-react";
+// import { useNavigate } from "react-router-dom";
+// import { AuthService } from "@/services/auth-service";
+// import ProfileDropDownMenu from "./profile-drop-down";
+// import { AuthHelper } from "@/utils/auth-helper";
+
+// const Navbar = () => {
+//   const [user, setUser] = useState<any>(null);
+//   const navigate = useNavigate();
+
+//   useEffect(() => {
+//     const verifyUser = async () => {
+//       const accessToken = AuthHelper.getAccessToken();
+//       const storedUser = AuthHelper.getUser();
+
+//       if (storedUser) {
+//         setUser(storedUser);
+
+//         if (!AuthHelper.getUserId()) {
+//           AuthHelper.setUserId(storedUser._id || storedUser.id);
+//         }
+//         return;
+//       }
+
+//       if (!accessToken) return;
+
+//       try {
+//         const res = await AuthService.verifyUser();
+
+//         if (res.data.success) {
+//           const loggedUser = res.data.data;
+
+//           setUser(loggedUser);
+
+//           AuthHelper.setUser(loggedUser);
+//           AuthHelper.setUserId(loggedUser._id || loggedUser.id);
+//         } else {
+//           AuthHelper.clearAuth();
+//           setUser(null);
+//         }
+//       } catch (error) {
+//         console.error("User verification failed:", error);
+//         AuthHelper.clearAuth();
+//         setUser(null);
+//       }
+//     };
+
+//     verifyUser();
+//   }, []);
+
+//   const handleLogout = async () => {
+//     try {
+//       await AuthService.logout();
+//     } catch (error) {
+//       console.error("Logout error:", error);
+//     } finally {
+//       AuthHelper.clearAuth();
+//       setUser(null);
+//       navigate("/");
+//     }
+//   };
+
+
+//   const handleNavigation = (path: string) => navigate(path);
+
+//   return (
+//     <header className="w-full flex justify-center mt-8">
+//       <nav className="w-[90%] max-w-8xl bg-white rounded-full shadow-sm border flex items-center justify-between px-6 py-3">
+//         {/* Brand */}
+//         <div className="text-2xl font-bold text-gray-900">WorkBee</div>
+
+//         {/* Links */}
+//         <ul className="flex space-x-8 text-gray-800 font-medium">
+//           <li>
+//             <button
+//               onClick={() => handleNavigation("/")}
+//               className="hover:text-black hover:font-semibold transition"
+//             >
+//               About Us
+//             </button>
+//           </li>
+
+
+//           <li>
+//             <button
+//               onClick={() => {
+//                 if (user?.role?.includes("worker")) {
+//                   handleNavigation("/worker/worker-dashboard");
+//                 } else {
+//                   handleNavigation("/worker/apply-worker");
+//                 }
+//               }}
+//               className="hover:text-black hover:font-semibold transition"
+//             >
+//               {user?.role?.includes("worker")
+//                 ? "Worker Dashboard"
+//                 : "Apply to become a worker"}
+//             </button>
+//           </li>
+
+
+//           <li>
+//             <button
+//               onClick={() => handleNavigation("/questions")}
+//               className="hover:text-black hover:font-semibold transition"
+//             >
+//               How It Works
+//             </button>
+//           </li>
+
+
+//         </ul>
+
+//         {/* Right Side */}
+//         <div className="flex items-center space-x-4">
+//           <button className="p-2 rounded-full border hover:bg-gray-100 transition">
+//             <Sun className="w-5 h-5" />
+//           </button>
+
+
+
+//           {user ? (
+//             <div className="flex items-center space-x-3">
+//               {/* Notification Icon */}
+//               <button className="p-2 rounded-full border hover:bg-gray-100 transition">
+//                 <Bell className="w-5 h-5" />
+//               </button>
+
+//               {/* Profile Dropdown */}
+//               <ProfileDropDownMenu user={user} onLogout={handleLogout} />
+//             </div>
+//           ) : (
+
+//             <Button
+//               onClick={() => handleNavigation("/login")}
+//               className="rounded-full px-5"
+//             >
+//               Sign In
+//             </Button>
+//           )}
+//         </div>
+//       </nav>
+//     </header>
+//   );
+// };
+
+// export default Navbar;
+
+
+// Frontend - components/Navbar.tsx (Updated)
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Bell, Sun } from "lucide-react";
+import { Sun } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AuthService } from "@/services/auth-service";
 import ProfileDropDownMenu from "./profile-drop-down";
+import NotificationDropdown from "./NotificationDropdown";
 import { AuthHelper } from "@/utils/auth-helper";
+import { notificationSocketService } from "@/services/notification-socket-service";
 
 const Navbar = () => {
   const [user, setUser] = useState<any>(null);
@@ -21,6 +176,12 @@ const Navbar = () => {
         if (!AuthHelper.getUserId()) {
           AuthHelper.setUserId(storedUser._id || storedUser.id);
         }
+
+        // Connect to notification socket when user is authenticated
+        if (accessToken && !notificationSocketService.isConnected()) {
+          notificationSocketService.connect(accessToken);
+        }
+
         return;
       }
 
@@ -36,6 +197,9 @@ const Navbar = () => {
 
           AuthHelper.setUser(loggedUser);
           AuthHelper.setUserId(loggedUser._id || loggedUser.id);
+
+          // Connect to notification socket
+          notificationSocketService.connect(accessToken);
         } else {
           AuthHelper.clearAuth();
           setUser(null);
@@ -56,12 +220,14 @@ const Navbar = () => {
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
+      // Disconnect notification socket
+      notificationSocketService.disconnect();
+      
       AuthHelper.clearAuth();
       setUser(null);
       navigate("/");
     }
   };
-
 
   const handleNavigation = (path: string) => navigate(path);
 
@@ -82,7 +248,6 @@ const Navbar = () => {
             </button>
           </li>
 
-
           <li>
             <button
               onClick={() => {
@@ -100,7 +265,6 @@ const Navbar = () => {
             </button>
           </li>
 
-
           <li>
             <button
               onClick={() => handleNavigation("/questions")}
@@ -109,8 +273,6 @@ const Navbar = () => {
               How It Works
             </button>
           </li>
-
-
         </ul>
 
         {/* Right Side */}
@@ -119,20 +281,15 @@ const Navbar = () => {
             <Sun className="w-5 h-5" />
           </button>
 
-
-
           {user ? (
             <div className="flex items-center space-x-3">
-              {/* Notification Icon */}
-              <button className="p-2 rounded-full border hover:bg-gray-100 transition">
-                <Bell className="w-5 h-5" />
-              </button>
+              {/* Notification Dropdown */}
+              <NotificationDropdown />
 
               {/* Profile Dropdown */}
               <ProfileDropDownMenu user={user} onLogout={handleLogout} />
             </div>
           ) : (
-
             <Button
               onClick={() => handleNavigation("/login")}
               className="rounded-full px-5"
