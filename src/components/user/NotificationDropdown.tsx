@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Bell } from "lucide-react";
 import { NotificationService } from "@/services/notification-service";
