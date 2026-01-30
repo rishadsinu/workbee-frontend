@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Bell } from "lucide-react";
 import { NotificationService } from "@/services/notification-service";
-import type {  Notification } from "@/services/notification-service";
+import type { Notification } from "@/services/notification-service";
 import { notificationSocketService } from "@/services/notification-socket-service";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
@@ -18,25 +18,32 @@ const NotificationDropdown = ({ onNotificationClick }: NotificationDropdownProps
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  // Load initial data
+  // Load initial data - REMOVED socket connection from here
   useEffect(() => {
     loadNotifications();
     loadUnreadCount();
 
     // Listen for new notifications via Socket.IO
     const handleNewNotification = (notification: Notification) => {
-      console.log('New notification received:', notification);
+      console.log('🔔 New notification received in dropdown:', notification);
       
       // Add to notifications list (avoid duplicates)
       setNotifications(prev => {
         const exists = prev.find(n => n.id === notification.id);
-        if (exists) return prev;
+        if (exists) {
+          console.log('⚠️ Duplicate notification blocked:', notification.id);
+          return prev;
+        }
+        console.log('✅ Adding new notification to list');
         return [notification, ...prev];
       });
       
       // Increment unread count ONLY if the notification is unread
       if (!notification.isRead) {
-        setUnreadCount(prev => prev + 1);
+        setUnreadCount(prev => {
+          console.log('📈 Incrementing unread count from', prev, 'to', prev + 1);
+          return prev + 1;
+        });
       }
       
       // Show browser notification if permitted

@@ -48,7 +48,7 @@ export default function WorkerMessages() {
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [chats, setChats] = useState<Chat[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const user = AuthHelper.getUser();
@@ -74,13 +74,13 @@ export default function WorkerMessages() {
     // Setup global message listener
     const handleNewMessage = (message: Message) => {
       setMessages((prev) => {
-        // Prevent duplicates
         if (prev.some(m => m.id === message.id)) {
           return prev;
         }
         return [...prev, message];
       });
     };
+    
 
     // Setup global typing listener
     const handleUserTyping = ({ userId: typingUserId, isTyping }: { userId: string; isTyping: boolean }) => {
@@ -158,10 +158,14 @@ export default function WorkerMessages() {
   const handleSendMessage = () => {
     if (!newMessage.trim() || !selectedChat) return;
 
+    // GET RECIPIENT ID
+    const recipientId = selectedChat.participants.userId; // Worker sends to User
+
     socketService.sendMessage({
       chatId: selectedChat.id,
       content: newMessage,
-      type: 'text'
+      type: 'text',
+      recipientId: recipientId 
     });
 
     setNewMessage('');
@@ -198,7 +202,7 @@ export default function WorkerMessages() {
   }
 
   return (
-    <div className="flex h-[calc(120vh-250px)] w-full bg-gray-50 overflow-hidden">
+    <div className="flex h-[calc(120vh-350px)] w-full bg-gray-50 overflow-hidden">
       {/* Sidebar */}
       <div className="w-80 bg-white border-r flex flex-col shrink-0">
         <div className="flex-1 overflow-y-auto">
@@ -336,7 +340,7 @@ export default function WorkerMessages() {
                   </div>
                 </div>
               )}
-              
+
               <div ref={messagesEndRef} />
             </div>
 
